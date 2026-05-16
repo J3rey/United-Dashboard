@@ -2,6 +2,8 @@
 
 A personal productivity dashboard built with Vite + React, ported from a single-file HTML prototype.
 
+Live demo: [united-dashboard.vercel.app](https://united-dashboard.vercel.app/)
+
 ## Features
 
 - **Calendar** — Month, week, and day views with event management and an upcoming events sidebar
