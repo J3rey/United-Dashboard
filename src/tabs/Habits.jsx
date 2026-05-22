@@ -109,6 +109,7 @@ export default function Habits({ state, setState, user, isDemo }) {
 
   const weekly = state.habits.filter(h => !h.daily)
   const daily  = state.habits.filter(h => h.daily)
+  const habitsInDisplayOrder = [...weekly, ...daily]
 
   return (
     <div className="panel">
@@ -159,7 +160,7 @@ export default function Habits({ state, setState, user, isDemo }) {
           {/* Weekly Overview */}
           <div className="side-card">
             <h3>Weekly Overview</h3>
-            {state.habits.map(h => {
+            {habitsInDisplayOrder.map(h => {
               const count = dates.filter(d => state.habitChecks[`${h.id}_${d}`]).length
               const pct = Math.round((count / h.goal) * 100)
               const color = h.daily ? 'var(--blue)' : count >= h.goal ? 'var(--green)' : 'var(--accent)'
