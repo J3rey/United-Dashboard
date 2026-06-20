@@ -32,6 +32,13 @@ function getCostClass(cost, allCosts) {
   return pct >= 0.66 ? 'cost-high' : pct >= 0.33 ? 'cost-mid' : 'cost-low'
 }
 
+// Within the same date: headers sort first (section start), normal expenses
+// next, ends last (section end). Falls back to original order for ties so a
+// freshly added header lands above same-date expenses instead of below them.
+function rowRank(row) {
+  return row.isHeader ? 0 : row.isEnd ? 2 : 1
+}
+
 function sortRowsByDate(rows) {
   return rows
     .map((row, index) => ({ row, index }))
@@ -39,6 +46,8 @@ function sortRowsByDate(rows) {
       const dateA = a.row.date || '9999-12-31'
       const dateB = b.row.date || '9999-12-31'
       if (dateA !== dateB) return dateA < dateB ? -1 : 1
+      const rankA = rowRank(a.row), rankB = rowRank(b.row)
+      if (rankA !== rankB) return rankA - rankB
       return a.index - b.index
     })
     .map(({ row }) => row)
@@ -217,11 +226,13 @@ export default function Finance({ state, setState, user, isDemo }) {
     const entry = { id, ...expData }
     setState(prev => {
       const exps = [...prev.expenses]
+      // Position by date, but count event headers/ends as boundary rows so a new
+      // expense lands after the last row dated on/before it. This drops additions
+      // under an open event header, and under an end marker once an event closes.
       let insertIdx = exps.length
       for (let i = exps.length - 1; i >= 0; i--) {
         const e = exps[i]
-        if (e.isHeader || e.isEnd) continue
-        if (e.date <= newDate) { insertIdx = i + 1; break }
+        if ((e.date || '') <= newDate) { insertIdx = i + 1; break }
         else insertIdx = i
       }
       exps.splice(insertIdx, 0, entry)
@@ -241,7 +252,9 @@ export default function Finance({ state, setState, user, isDemo }) {
       id = await db.insertTransaction(user.id, header, state.expenses.length).catch(console.error)
       if (!id) return
     }
-    setState(prev => ({ ...prev, expenses: sortRowsByDate([...prev.expenses, { id, ...header }]) }))
+    // Append in place so the header opens a section here; later additions fall
+    // under it (see addExpense). Re-sorting by date would scramble the grouping.
+    setState(prev => ({ ...prev, expenses: [...prev.expenses, { id, ...header }] }))
     setNewHeader('')
   }
 
@@ -257,7 +270,9 @@ export default function Finance({ state, setState, user, isDemo }) {
       id = await db.insertTransaction(user.id, end, state.expenses.length).catch(console.error)
       if (!id) return
     }
-    setState(prev => ({ ...prev, expenses: sortRowsByDate([...prev.expenses, { id, ...end }]) }))
+    // Append in place so the end closes the section here; later additions fall
+    // under the end marker rather than back inside the event.
+    setState(prev => ({ ...prev, expenses: [...prev.expenses, { id, ...end }] }))
   }
 
   async function deleteExpense(id) {
