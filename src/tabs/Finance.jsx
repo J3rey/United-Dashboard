@@ -32,13 +32,28 @@ function getCostClass(cost, allCosts) {
   return pct >= 0.66 ? 'cost-high' : pct >= 0.33 ? 'cost-mid' : 'cost-low'
 }
 
-// Within the same date: headers sort first (section start), normal expenses
-// next, ends last (section end). Falls back to original order for ties so a
-// freshly added header lands above same-date expenses instead of below them.
-function rowRank(row) {
-  return row.isHeader ? 0 : row.isEnd ? 2 : 1
+// Insert a row at the END of its date group: right after the last row dated
+// on/before it (event headers/ends count as boundary rows). This keeps the
+// array ordered by (date, insertion-order) — the SAME ordering the database
+// replays on reload (db.fetchTransactions: ORDER BY date, sort_order, where
+// sort_order is a monotonic insert counter). Keeping the in-app order identical
+// to the persisted order is what makes the grouping survive a page reload on
+// the deployed app, not just in the current session.
+function insertByDate(rows, entry) {
+  const out = [...rows]
+  let idx = out.length
+  for (let i = out.length - 1; i >= 0; i--) {
+    if ((out[i].date || '') <= (entry.date || '')) { idx = i + 1; break }
+    else idx = i
+  }
+  out.splice(idx, 0, entry)
+  return out
 }
 
+// Stable sort by date only (ties keep their current array order). Because the
+// array is otherwise maintained in (date, sort_order) order, a stable date sort
+// preserves that secondary order — so re-sorting after a date edit still matches
+// the reload ordering. Used only by the date-cell edit path.
 function sortRowsByDate(rows) {
   return rows
     .map((row, index) => ({ row, index }))
@@ -46,8 +61,6 @@ function sortRowsByDate(rows) {
       const dateA = a.row.date || '9999-12-31'
       const dateB = b.row.date || '9999-12-31'
       if (dateA !== dateB) return dateA < dateB ? -1 : 1
-      const rankA = rowRank(a.row), rankB = rowRank(b.row)
-      if (rankA !== rankB) return rankA - rankB
       return a.index - b.index
     })
     .map(({ row }) => row)
@@ -224,20 +237,7 @@ export default function Finance({ state, setState, user, isDemo }) {
       if (!id) return
     }
     const entry = { id, ...expData }
-    setState(prev => {
-      const exps = [...prev.expenses]
-      // Position by date, but count event headers/ends as boundary rows so a new
-      // expense lands after the last row dated on/before it. This drops additions
-      // under an open event header, and under an end marker once an event closes.
-      let insertIdx = exps.length
-      for (let i = exps.length - 1; i >= 0; i--) {
-        const e = exps[i]
-        if ((e.date || '') <= newDate) { insertIdx = i + 1; break }
-        else insertIdx = i
-      }
-      exps.splice(insertIdx, 0, entry)
-      return { ...prev, expenses: exps }
-    })
+    setState(prev => ({ ...prev, expenses: insertByDate(prev.expenses, entry) }))
     setNewDetail(''); setNewCost(''); setNewPerson('')
     setNameFieldVisible(false); setNewType('normal')
   }
@@ -252,9 +252,9 @@ export default function Finance({ state, setState, user, isDemo }) {
       id = await db.insertTransaction(user.id, header, state.expenses.length).catch(console.error)
       if (!id) return
     }
-    // Append in place so the header opens a section here; later additions fall
-    // under it (see addExpense). Re-sorting by date would scramble the grouping.
-    setState(prev => ({ ...prev, expenses: [...prev.expenses, { id, ...header }] }))
+    // Insert at the end of its date group (same rule as expenses) so the header
+    // sits exactly where the date-ordered reload will place it.
+    setState(prev => ({ ...prev, expenses: insertByDate(prev.expenses, { id, ...header }) }))
     setNewHeader('')
   }
 
@@ -270,9 +270,9 @@ export default function Finance({ state, setState, user, isDemo }) {
       id = await db.insertTransaction(user.id, end, state.expenses.length).catch(console.error)
       if (!id) return
     }
-    // Append in place so the end closes the section here; later additions fall
-    // under the end marker rather than back inside the event.
-    setState(prev => ({ ...prev, expenses: [...prev.expenses, { id, ...end }] }))
+    // Insert at the end of its date group so the end marker persists in the same
+    // spot the date-ordered reload will place it.
+    setState(prev => ({ ...prev, expenses: insertByDate(prev.expenses, { id, ...end }) }))
   }
 
   async function deleteExpense(id) {
