@@ -50,6 +50,18 @@ function insertByDate(rows, entry) {
   return out
 }
 
+// Place an event marker (header / end) directly after the row it anchors to.
+// Markers are positional, not dated: they bracket whatever rows are on screen,
+// so they can't be placed by the add-form's date field. Callers give the marker
+// the anchor row's date, which keeps it in the same date group on reload.
+function insertAfterId(rows, anchorId, entry) {
+  const idx = rows.findIndex(r => r.id === anchorId)
+  if (idx === -1) return insertByDate(rows, entry)
+  const out = [...rows]
+  out.splice(idx + 1, 0, entry)
+  return out
+}
+
 // Stable sort by date only (ties keep their current array order). Because the
 // array is otherwise maintained in (date, sort_order) order, a stable date sort
 // preserves that secondary order — so re-sorting after a date edit still matches
@@ -244,7 +256,10 @@ export default function Finance({ state, setState, user, isDemo }) {
 
   async function addEventHeader() {
     if (!newHeader.trim()) return
-    const header = { isHeader: true, label: newHeader.trim(), date: newDate || '0000-00-00' }
+    // A header opens at the bottom of what's currently visible, so everything
+    // added after it falls inside the event.
+    const anchor = filtered[filtered.length - 1]
+    const header = { isHeader: true, label: newHeader.trim(), date: anchor?.date || newDate || '0000-00-00' }
     let id
     if (isDemo) {
       id = 'h' + uid()
@@ -252,9 +267,7 @@ export default function Finance({ state, setState, user, isDemo }) {
       id = await db.insertTransaction(user.id, header, state.expenses.length).catch(console.error)
       if (!id) return
     }
-    // Insert at the end of its date group (same rule as expenses) so the header
-    // sits exactly where the date-ordered reload will place it.
-    setState(prev => ({ ...prev, expenses: insertByDate(prev.expenses, { id, ...header }) }))
+    setState(prev => ({ ...prev, expenses: insertAfterId(prev.expenses, anchor?.id, { id, ...header }) }))
     setNewHeader('')
   }
 
@@ -262,7 +275,13 @@ export default function Finance({ state, setState, user, isDemo }) {
     const endedIds = new Set(state.expenses.filter(e => e.isEnd && e.headerId).map(e => e.headerId))
     const last = [...state.expenses].reverse().find(e => e.isHeader && !endedIds.has(e.id))
     if (!last) return
-    const end = { isEnd: true, label: 'End of ' + last.label, headerId: last.id, date: newDate }
+    // Close on the most recent row currently visible — but never above the
+    // header itself (the view can be filtered to a month before the header).
+    const lastVisible = filtered[filtered.length - 1]
+    const anchor = lastVisible && state.expenses.indexOf(lastVisible) > state.expenses.indexOf(last)
+      ? lastVisible
+      : last
+    const end = { isEnd: true, label: 'End of ' + last.label, headerId: last.id, date: anchor.date || newDate }
     let id
     if (isDemo) {
       id = 'e' + uid()
@@ -270,9 +289,7 @@ export default function Finance({ state, setState, user, isDemo }) {
       id = await db.insertTransaction(user.id, end, state.expenses.length).catch(console.error)
       if (!id) return
     }
-    // Insert at the end of its date group so the end marker persists in the same
-    // spot the date-ordered reload will place it.
-    setState(prev => ({ ...prev, expenses: insertByDate(prev.expenses, { id, ...end }) }))
+    setState(prev => ({ ...prev, expenses: insertAfterId(prev.expenses, anchor.id, { id, ...end }) }))
   }
 
   async function deleteExpense(id) {
