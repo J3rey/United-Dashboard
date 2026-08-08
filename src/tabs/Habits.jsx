@@ -31,6 +31,13 @@ export default function Habits({ state, setState, user, isDemo }) {
 
   const dates = getWeekDates(state.habitWeekOffset)
 
+  // Ticking Gym auto-ticks Physical exercise (faint, not manually toggleable)
+  const gymHabit = state.habits.find(h => /^gym\b/i.test(h.name))
+  const peHabit  = state.habits.find(h => /physical exercise/i.test(h.name))
+  const isAuto = (habitId, date) =>
+    !!(peHabit && gymHabit && habitId === peHabit.id && state.habitChecks[`${gymHabit.id}_${date}`])
+  const isChecked = (habitId, date) => !!state.habitChecks[`${habitId}_${date}`] || isAuto(habitId, date)
+
   const startLabel = new Date(dates[0] + 'T12:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
   const endLabel   = new Date(dates[6] + 'T12:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 
@@ -39,6 +46,7 @@ export default function Habits({ state, setState, user, isDemo }) {
   }
 
   function toggleHabit(habitId, date) {
+    if (isAuto(habitId, date)) return
     const key = `${habitId}_${date}`
     const newChecked = !state.habitChecks[key]
     setState(prev => ({
@@ -74,7 +82,7 @@ export default function Habits({ state, setState, user, isDemo }) {
   }
 
   function renderHabitRow(h) {
-    const count = dates.filter(d => state.habitChecks[`${h.id}_${d}`]).length
+    const count = dates.filter(d => isChecked(h.id, d)).length
     let completion
     if (!h.daily) {
       if (count >= h.goal)      completion = <span className="completion-badge completion-done">Complete</span>
@@ -91,9 +99,9 @@ export default function Habits({ state, setState, user, isDemo }) {
           <button className="del-btn" onClick={() => deleteHabit(h.id)} style={{ marginLeft: '6px', fontSize: '11px' }}>×</button>
         </div>
         {dates.map(d => {
-          const key = `${h.id}_${d}`
-          const checked = state.habitChecks[key]
-          const cls = checked ? (h.daily ? 'cb daily-checked' : 'cb checked') : 'cb'
+          const auto = isAuto(h.id, d)
+          const checked = isChecked(h.id, d)
+          const cls = (checked ? (h.daily ? 'cb daily-checked' : 'cb checked') : 'cb') + (auto ? ' auto-checked' : '')
           return (
             <div key={d} className="habit-check">
               <div className={cls} onClick={() => toggleHabit(h.id, d)}>
@@ -161,7 +169,7 @@ export default function Habits({ state, setState, user, isDemo }) {
           <div className="side-card">
             <h3>Weekly Overview</h3>
             {habitsInDisplayOrder.map(h => {
-              const count = dates.filter(d => state.habitChecks[`${h.id}_${d}`]).length
+              const count = dates.filter(d => isChecked(h.id, d)).length
               const pct = Math.round((count / h.goal) * 100)
               const color = h.daily ? 'var(--blue)' : count >= h.goal ? 'var(--green)' : 'var(--accent)'
               return (

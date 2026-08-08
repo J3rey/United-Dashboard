@@ -1213,6 +1213,13 @@ tr.ev-end-row td {
   background: var(--blue);
   border-color: var(--blue);
 }
+.cb.auto-checked {
+  opacity: 0.4;
+  cursor: default;
+}
+.cb.auto-checked:hover {
+  border-color: var(--blue);
+}
 .checkmark {
   width: 10px;
   height: 10px;
