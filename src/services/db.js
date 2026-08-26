@@ -115,6 +115,7 @@ export async function fetchHabits(userId) {
   if (error) throw error
   return (data ?? []).map(h => ({
     id: h.id, name: h.name, type: h.type, goal: h.goal, daily: h.is_daily,
+    archived: h.archived ?? false,
   }))
 }
 
@@ -127,8 +128,12 @@ export async function insertHabit(userId, habit, sortOrder) {
   return data.id
 }
 
-export async function deleteHabit(id) {
-  const { error } = await supabase.from('habits').delete().eq('id', id)
+export async function updateHabit(id, changes) {
+  const mapped = {}
+  if ('name'     in changes) mapped.name = changes.name
+  if ('goal'     in changes) mapped.goal = changes.goal
+  if ('archived' in changes) mapped.archived = changes.archived
+  const { error } = await supabase.from('habits').update(mapped).eq('id', id)
   if (error) throw error
 }
 

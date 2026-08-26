@@ -28,6 +28,9 @@ export default function Habits({ state, setState, user, isDemo }) {
   const [habitType, setHabitType] = useState('weekly')
   const [nameInput, setNameInput] = useState('')
   const [goalInput, setGoalInput] = useState(3)
+  const [editing, setEditing] = useState(null)   // { id, field: 'name' | 'goal' }
+  const [draft, setDraft] = useState('')
+  const [archivedOpen, setArchivedOpen] = useState(false)
 
   const dates = getWeekDates(state.habitWeekOffset)
 
@@ -56,16 +59,52 @@ export default function Habits({ state, setState, user, isDemo }) {
     if (!isDemo) db.toggleHabitLog(user.id, habitId, date, newChecked).catch(console.error)
   }
 
-  async function deleteHabit(id) {
-    if (!isDemo) {
-      try {
-        await db.deleteHabit(id)
-      } catch (err) {
-        console.error(err)
-        return
-      }
+  function setArchived(id, archived) {
+    setState(prev => ({
+      ...prev,
+      habits: prev.habits.map(h => (h.id === id ? { ...h, archived } : h)),
+    }))
+    if (!isDemo) db.updateHabit(id, { archived }).catch(console.error)
+  }
+
+  function startEdit(h, field) {
+    setEditing({ id: h.id, field })
+    setDraft(field === 'name' ? h.name : String(h.goal))
+  }
+
+  function cancelEdit() {
+    setEditing(null)
+    setDraft('')
+  }
+
+  function commitEdit() {
+    if (!editing) return
+    const { id, field } = editing
+    const h = state.habits.find(x => x.id === id)
+    if (!h) return cancelEdit()
+
+    let changes
+    if (field === 'name') {
+      const name = draft.trim()
+      if (!name || name === h.name) return cancelEdit()
+      changes = { name }
+    } else {
+      const goal = Math.min(7, Math.max(1, parseInt(draft, 10) || h.goal))
+      if (goal === h.goal) return cancelEdit()
+      changes = { goal }
     }
-    setState(prev => ({ ...prev, habits: prev.habits.filter(h => h.id !== id) }))
+
+    setState(prev => ({
+      ...prev,
+      habits: prev.habits.map(x => (x.id === id ? { ...x, ...changes } : x)),
+    }))
+    if (!isDemo) db.updateHabit(id, changes).catch(console.error)
+    cancelEdit()
+  }
+
+  function editKeyDown(e) {
+    if (e.key === 'Enter') commitEdit()
+    else if (e.key === 'Escape') cancelEdit()
   }
 
   async function addHabit() {
@@ -83,11 +122,34 @@ export default function Habits({ state, setState, user, isDemo }) {
 
   function renderHabitRow(h) {
     const count = dates.filter(d => isChecked(h.id, d)).length
+    const editingName = editing?.id === h.id && editing.field === 'name'
+    const editingGoal = editing?.id === h.id && editing.field === 'goal'
+
     let completion
     if (!h.daily) {
-      if (count >= h.goal)      completion = <span className="completion-badge completion-done">Complete</span>
-      else if (count > 0)       completion = <span className="completion-badge completion-partial">{count}/{h.goal}</span>
-      else                      completion = <span className="completion-badge completion-empty">0/{h.goal}</span>
+      if (editingGoal) {
+        completion = (
+          <input
+            className="habit-inline-input habit-goal-input"
+            type="number" min={1} max={7} autoFocus
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={editKeyDown}
+          />
+        )
+      } else {
+        const cls = count >= h.goal ? 'completion-done' : count > 0 ? 'completion-partial' : 'completion-empty'
+        completion = (
+          <span
+            className={'completion-badge ' + cls + ' editable'}
+            onClick={() => startEdit(h, 'goal')}
+            title="Click to edit weekly target"
+          >
+            {count >= h.goal ? 'Complete' : `${count}/${h.goal}`}
+          </span>
+        )
+      }
     } else {
       completion = <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{count}/7</span>
     }
@@ -95,8 +157,26 @@ export default function Habits({ state, setState, user, isDemo }) {
     return (
       <div key={h.id} className="habit-row">
         <div className="habit-name">
-          {h.name}
-          <button className="del-btn" onClick={() => deleteHabit(h.id)} style={{ marginLeft: '6px', fontSize: '11px' }}>×</button>
+          {editingName ? (
+            <input
+              className="habit-inline-input"
+              autoFocus
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={editKeyDown}
+            />
+          ) : (
+            <>
+              <span className="habit-name-text" onClick={() => startEdit(h, 'name')} title="Click to rename">{h.name}</span>
+              <button
+                className="del-btn"
+                onClick={() => setArchived(h.id, true)}
+                title="Archive"
+                style={{ marginLeft: '6px', fontSize: '11px' }}
+              >×</button>
+            </>
+          )}
         </div>
         {dates.map(d => {
           const auto = isAuto(h.id, d)
@@ -115,8 +195,10 @@ export default function Habits({ state, setState, user, isDemo }) {
     )
   }
 
-  const weekly = state.habits.filter(h => !h.daily)
-  const daily  = state.habits.filter(h => h.daily)
+  const live     = state.habits.filter(h => !h.archived)
+  const archived = state.habits.filter(h => h.archived)
+  const weekly = live.filter(h => !h.daily)
+  const daily  = live.filter(h => h.daily)
   const habitsInDisplayOrder = [...weekly, ...daily]
 
   return (
@@ -127,9 +209,18 @@ export default function Habits({ state, setState, user, isDemo }) {
             <div className="habit-hdr-row">
               <h2>Habit Tracker</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--text2)' }}>
-                <button className="btn-ghost" onClick={() => habitNav(-1)}>←</button>
-                <span>{startLabel} — {endLabel}</span>
-                <button className="btn-ghost" onClick={() => habitNav(1)}>→</button>
+                <button
+                  className="btn-ghost"
+                  onClick={() => setState(prev => ({ ...prev, habitWeekOffset: 0 }))}
+                  disabled={state.habitWeekOffset === 0}
+                  aria-label="Jump to the current week"
+                >Today</button>
+                <button className="btn-ghost" onClick={() => habitNav(-1)} aria-label="Previous week">←</button>
+                <span aria-live="polite">
+                  {startLabel} — {endLabel}
+                  {state.habitWeekOffset === 0 && <span className="week-current-tag"> · This week</span>}
+                </span>
+                <button className="btn-ghost" onClick={() => habitNav(1)} aria-label="Next week">→</button>
               </div>
             </div>
 
@@ -159,6 +250,29 @@ export default function Habits({ state, setState, user, isDemo }) {
                   <div className="habit-section-label">Daily Tracking</div>
                 </div>
                 {daily.map(h => renderHabitRow(h))}
+              </>
+            )}
+
+            {/* Archived section */}
+            {archived.length > 0 && (
+              <>
+                <div className="habit-row" style={{ background: 'var(--surface2)' }}>
+                  <div
+                    className="habit-section-label habit-section-toggle"
+                    onClick={() => setArchivedOpen(v => !v)}
+                  >
+                    <span>Archived ({archived.length})</span>
+                    <span className={'collapse-icon' + (archivedOpen ? ' open' : '')}>&#9650;</span>
+                  </div>
+                </div>
+                {archivedOpen && archived.map(h => (
+                  <div key={h.id} className="habit-row">
+                    <div className="habit-name" style={{ color: 'var(--text3)' }}>{h.name}</div>
+                    <div className="habit-archived-actions">
+                      <button className="btn-ghost" onClick={() => setArchived(h.id, false)}>Restore</button>
+                    </div>
+                  </div>
+                ))}
               </>
             )}
           </div>
