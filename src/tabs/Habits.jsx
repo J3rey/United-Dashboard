@@ -28,8 +28,6 @@ export default function Habits({ state, setState, user, isDemo }) {
   const [habitType, setHabitType] = useState('weekly')
   const [nameInput, setNameInput] = useState('')
   const [goalInput, setGoalInput] = useState(3)
-  const [editing, setEditing] = useState(null)   // { id, field: 'name' | 'goal' }
-  const [draft, setDraft] = useState('')
   const [archivedOpen, setArchivedOpen] = useState(false)
 
   const dates = getWeekDates(state.habitWeekOffset)
@@ -67,44 +65,25 @@ export default function Habits({ state, setState, user, isDemo }) {
     if (!isDemo) db.updateHabit(id, { archived }).catch(console.error)
   }
 
-  function startEdit(h, field) {
-    setEditing({ id: h.id, field })
-    setDraft(field === 'name' ? h.name : String(h.goal))
-  }
-
-  function cancelEdit() {
-    setEditing(null)
-    setDraft('')
-  }
-
-  function commitEdit() {
-    if (!editing) return
-    const { id, field } = editing
-    const h = state.habits.find(x => x.id === id)
-    if (!h) return cancelEdit()
-
-    let changes
-    if (field === 'name') {
-      const name = draft.trim()
-      if (!name || name === h.name) return cancelEdit()
-      changes = { name }
-    } else {
-      const goal = Math.min(7, Math.max(1, parseInt(draft, 10) || h.goal))
-      if (goal === h.goal) return cancelEdit()
-      changes = { goal }
-    }
-
+  function commitName(h, el) {
+    const v = el.textContent.trim()
+    if (!v || v === h.name) { el.textContent = h.name; return }
     setState(prev => ({
       ...prev,
-      habits: prev.habits.map(x => (x.id === id ? { ...x, ...changes } : x)),
+      habits: prev.habits.map(x => (x.id === h.id ? { ...x, name: v } : x)),
     }))
-    if (!isDemo) db.updateHabit(id, changes).catch(console.error)
-    cancelEdit()
+    if (!isDemo) db.updateHabit(h.id, { name: v }).catch(console.error)
   }
 
-  function editKeyDown(e) {
-    if (e.key === 'Enter') commitEdit()
-    else if (e.key === 'Escape') cancelEdit()
+  function commitGoal(h, el) {
+    const goal = Math.min(7, Math.max(1, parseInt(el.textContent, 10) || h.goal))
+    el.textContent = goal
+    if (goal === h.goal) return
+    setState(prev => ({
+      ...prev,
+      habits: prev.habits.map(x => (x.id === h.id ? { ...x, goal } : x)),
+    }))
+    if (!isDemo) db.updateHabit(h.id, { goal }).catch(console.error)
   }
 
   async function addHabit() {
@@ -122,34 +101,30 @@ export default function Habits({ state, setState, user, isDemo }) {
 
   function renderHabitRow(h) {
     const count = dates.filter(d => isChecked(h.id, d)).length
-    const editingName = editing?.id === h.id && editing.field === 'name'
-    const editingGoal = editing?.id === h.id && editing.field === 'goal'
 
     let completion
     if (!h.daily) {
-      if (editingGoal) {
-        completion = (
-          <input
-            className="habit-inline-input habit-goal-input"
-            type="number" min={1} max={7} autoFocus
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onBlur={commitEdit}
-            onKeyDown={editKeyDown}
-          />
-        )
-      } else {
-        const cls = count >= h.goal ? 'completion-done' : count > 0 ? 'completion-partial' : 'completion-empty'
-        completion = (
+      const cls = count >= h.goal ? 'completion-done' : count > 0 ? 'completion-partial' : 'completion-empty'
+      completion = (
+        <span className={'completion-badge ' + cls}>
+          <span style={{ pointerEvents: 'none', userSelect: 'none' }}>{count}/</span>
           <span
-            className={'completion-badge ' + cls + ' editable'}
-            onClick={() => startEdit(h, 'goal')}
-            title="Click to edit weekly target"
-          >
-            {count >= h.goal ? 'Complete' : `${count}/${h.goal}`}
-          </span>
-        )
-      }
+            suppressContentEditableWarning contentEditable
+            style={{ cursor: 'text', outline: 'none' }}
+            title="Weekly target"
+            onKeyDown={ev => {
+              if (ev.key === 'Enter')  { ev.preventDefault(); ev.currentTarget.blur(); return }
+              if (ev.key === 'Escape') { ev.currentTarget.textContent = h.goal; ev.currentTarget.blur(); return }
+              if (ev.ctrlKey || ev.metaKey) return
+              if (/^(Arrow|Backspace|Delete|Tab|Home|End)/.test(ev.key)) return
+              if (!/^[1-7]$/.test(ev.key)) { ev.preventDefault(); return }
+              const selLen = window.getSelection()?.toString().length || 0
+              if (ev.currentTarget.textContent.length - selLen >= 1) ev.preventDefault()
+            }}
+            onBlur={ev => commitGoal(h, ev.currentTarget)}
+          >{h.goal}</span>
+        </span>
+      )
     } else {
       completion = <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{count}/7</span>
     }
@@ -157,26 +132,22 @@ export default function Habits({ state, setState, user, isDemo }) {
     return (
       <div key={h.id} className="habit-row">
         <div className="habit-name">
-          {editingName ? (
-            <input
-              className="habit-inline-input"
-              autoFocus
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              onBlur={commitEdit}
-              onKeyDown={editKeyDown}
-            />
-          ) : (
-            <>
-              <span className="habit-name-text" onClick={() => startEdit(h, 'name')} title="Click to rename">{h.name}</span>
-              <button
-                className="del-btn"
-                onClick={() => setArchived(h.id, true)}
-                title="Archive"
-                style={{ marginLeft: '6px', fontSize: '11px' }}
-              >×</button>
-            </>
-          )}
+          <span
+            className="habit-name-text"
+            suppressContentEditableWarning contentEditable
+            style={{ cursor: 'text', outline: 'none' }}
+            onKeyDown={ev => {
+              if (ev.key === 'Enter')  { ev.preventDefault(); ev.currentTarget.blur() }
+              if (ev.key === 'Escape') { ev.currentTarget.textContent = h.name; ev.currentTarget.blur() }
+            }}
+            onBlur={ev => commitName(h, ev.currentTarget)}
+          >{h.name}</span>
+          <button
+            className="del-btn"
+            onClick={() => setArchived(h.id, true)}
+            title="Archive"
+            style={{ marginLeft: '6px', fontSize: '11px' }}
+          >×</button>
         </div>
         {dates.map(d => {
           const auto = isAuto(h.id, d)
@@ -216,10 +187,7 @@ export default function Habits({ state, setState, user, isDemo }) {
                   aria-label="Jump to the current week"
                 >Today</button>
                 <button className="btn-ghost" onClick={() => habitNav(-1)} aria-label="Previous week">←</button>
-                <span aria-live="polite">
-                  {startLabel} — {endLabel}
-                  {state.habitWeekOffset === 0 && <span className="week-current-tag"> · This week</span>}
-                </span>
+                <span aria-live="polite" className="habit-week-range">{startLabel} — {endLabel}</span>
                 <button className="btn-ghost" onClick={() => habitNav(1)} aria-label="Next week">→</button>
               </div>
             </div>
