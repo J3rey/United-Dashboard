@@ -27,7 +27,16 @@ export function useAppData(user) {
     }
     setLoading(true)
     setError(null)
-    db.fetchAll(user.id)
+    const load = async () => {
+      try {
+        return await db.fetchAll(user.id)
+      } catch (err) {
+        if (!err.message?.includes('JWT issued at future')) throw err
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        return db.fetchAll(user.id)
+      }
+    }
+    load()
       .then(data => { setStateRaw(data); setLoading(false) })
       .catch(err => {
         console.error('fetchAll failed', err)
