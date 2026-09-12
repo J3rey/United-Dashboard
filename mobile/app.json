@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "dashboard",
+    "slug": "united-dashboard",
+    "version": "1.0.0",
+    "scheme": "united-dashboard",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/logo.png",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f5f3ee"
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#f5f3ee"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-splash-screen",
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/logo.png",
+      "name": "dashboard",
+      "shortName": "dashboard",
+      "themeColor": "#f5f3ee",
+      "backgroundColor": "#f5f3ee"
+    }
+  }
+}
