@@ -3,6 +3,7 @@
     "name": "dashboard",
     "slug": "united-dashboard",
     "version": "1.0.0",
+    "sdkVersion": "57.0.0",
     "scheme": "united-dashboard",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
