@@ -1,0 +1,2323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  United Dashboard — mobile (Expo) handoff spec.
+  35 screens at 390x844, each with its expo-router route, React Native
+  components, libraries, behaviour and copy. Open in a browser to see the
+  mocks; read as text for the spec. Decisions: docs/superpowers/specs/2026-09-12-mobile-expo-design.md
+-->
+<style>*{box-sizing:border-box;margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}body{margin:0}</style>
+</head>
+<body>
+<title>United Dashboard Mobile</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ── chrome tokens ───────────────────────────────────────────────────────── */
+:root{
+  --bg:#eceee8; --surf:#fff; --surf2:#f5f7f1; --ink:#161812; --ink2:#5c6055; --ink3:#8b9084;
+  --rule:#d7dad1; --rule2:#c3c7bb; --moss:#3b6b3b; --moss-soft:#e6efe4; --clay:#b03a28;
+  --code:#f1f4ed; --code-ink:#3a4234;
+  --shadow:0 1px 2px rgba(22,24,18,.06), 0 8px 24px rgba(22,24,18,.07);
+  --frame-shadow:0 2px 4px rgba(22,24,18,.08), 0 18px 48px rgba(22,24,18,.16);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121410; --surf:#1b1e18; --surf2:#20241d; --ink:#e9ebe3; --ink2:#a4a89b; --ink3:#7d8276;
+    --rule:#2c3028; --rule2:#3a3f35; --moss:#8db97c; --moss-soft:#232a20; --clay:#e08772;
+    --code:#1f231c; --code-ink:#c3c9ba;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    --frame-shadow:0 2px 4px rgba(0,0,0,.5), 0 18px 48px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121410; --surf:#1b1e18; --surf2:#20241d; --ink:#e9ebe3; --ink2:#a4a89b; --ink3:#7d8276;
+  --rule:#2c3028; --rule2:#3a3f35; --moss:#8db97c; --moss-soft:#232a20; --clay:#e08772;
+  --code:#1f231c; --code-ink:#c3c9ba;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --frame-shadow:0 2px 4px rgba(0,0,0,.5), 0 18px 48px rgba(0,0,0,.5);
+}
+/* ── app tokens (single light world — the app itself is light-only) ─────── */
+:root{
+  --a-paper:#f5f3ee; --a-surf:#ffffff; --a-surf2:#f9f8f5; --a-border:#e5e3dc; --a-border2:#d4d1c8;
+  --a-ink:#1a1a18; --a-ink2:#6b6960; --a-ink3:#9c9990;
+  --a-moss:#3b6b3b; --a-moss-l:#e8f0e8; --a-green:#4a7c59; --a-green-l:#eef5f0;
+  --a-red:#c0392b; --a-amber:#b5720a; --a-amber-l:#fdf5e6; --a-blue:#2c5f8a; --a-blue-l:#edf3f8;
+  --a-purple:#6b4fa0; --a-purple-l:#f3eefb; --a-teal:#1e7a6e; --a-coral:#c0502a; --a-pink:#b04070;
+  --c-transport:#a8c4e0; --c-food:#c8ddb8; --c-events:#d4b8d4; --c-misc:#d4c8a0;
+  --c-clothes:#e8b8c0; --c-recurring:#a8d4cc; --c-gifts:#e8c0c8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+img,svg{max-width:100%}
+body{
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg); color:var(--ink); font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--moss); outline-offset:2px; border-radius:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+
+/* ── page shell ──────────────────────────────────────────────────────────── */
+.wrap{max-width:1340px;margin:0 auto;padding:0 28px 96px}
+header.top{padding:56px 0 34px;border-bottom:1px solid var(--rule);margin-bottom:40px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--moss);letter-spacing:.06em;margin-bottom:14px}
+h1{font-size:clamp(30px,4.4vw,46px);line-height:1.05;letter-spacing:-.022em;font-weight:600;text-wrap:balance;max-width:22ch}
+header.top p.lede{margin-top:16px;max-width:62ch;color:var(--ink2);font-size:16px}
+.facts{display:flex;flex-wrap:wrap;gap:0;margin-top:30px;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--surf)}
+.fact{flex:1 1 150px;min-width:0;padding:14px 18px;border-right:1px solid var(--rule)}
+.fact:last-child{border-right:0}
+.fact dt{font-size:11.5px;color:var(--ink3);letter-spacing:.04em;margin-bottom:3px}
+.fact dd{font-size:14px;font-weight:500;font-family:"IBM Plex Mono",monospace}
+
+.layout{display:grid;grid-template-columns:216px minmax(0,1fr);gap:44px;align-items:start}
+nav.rail{position:sticky;top:22px;max-height:calc(100vh - 44px);overflow-y:auto;font-size:13.5px;padding-right:6px}
+nav.rail h2{font-size:11.5px;font-family:"IBM Plex Mono",monospace;color:var(--ink3);letter-spacing:.06em;margin:20px 0 7px}
+nav.rail h2:first-child{margin-top:0}
+nav.rail a{display:block;padding:4px 9px;border-radius:6px;text-decoration:none;color:var(--ink2);border-left:2px solid transparent}
+nav.rail a:hover{background:var(--surf);color:var(--ink)}
+nav.rail a .n{font-family:"IBM Plex Mono",monospace;color:var(--ink3);margin-right:7px;font-size:12px}
+
+section.grp{margin-bottom:8px;scroll-margin-top:20px}
+section.grp > .grp-hd{position:sticky;top:0;z-index:5;background:var(--bg);padding:26px 0 12px;border-bottom:1px solid var(--rule);margin-bottom:30px}
+.grp-hd h2{font-size:24px;font-weight:600;letter-spacing:-.015em}
+.grp-hd p{color:var(--ink2);font-size:14.5px;max-width:66ch;margin-top:4px}
+
+.block{display:grid;grid-template-columns:min-content minmax(0,1fr);gap:42px;padding-bottom:52px;margin-bottom:52px;border-bottom:1px solid var(--rule);scroll-margin-top:96px}
+.block:last-child{border-bottom:0}
+.cap{margin-top:14px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink3);text-align:center;width:390px}
+.cap b{color:var(--ink2);font-weight:500}
+
+.spec{padding-top:2px;min-width:0}
+.spec h3{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.spec .route{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--moss);margin-top:5px;word-break:break-all}
+.spec p.what{margin-top:12px;color:var(--ink2);max-width:64ch;font-size:14.5px}
+.spec dl{margin-top:18px;display:grid;grid-template-columns:min-content minmax(0,1fr);gap:0}
+.spec dt{font-size:11.5px;font-family:"IBM Plex Mono",monospace;color:var(--ink3);padding:9px 20px 9px 0;border-top:1px solid var(--rule);white-space:nowrap;letter-spacing:.03em}
+.spec dd{font-size:14px;padding:9px 0;border-top:1px solid var(--rule);color:var(--ink2);min-width:0}
+.spec dd ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.spec dd li{padding-left:14px;position:relative}
+.spec dd li::before{content:"";position:absolute;left:0;top:.62em;width:5px;height:1px;background:var(--rule2)}
+.spec dd strong{color:var(--ink);font-weight:600}
+code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code);color:var(--code-ink);padding:1.5px 5px;border-radius:4px;border:1px solid var(--rule)}
+.spec dd a{color:var(--moss);text-decoration-thickness:1px;text-underline-offset:2px}
+.warn{margin-top:16px;padding:11px 14px;background:var(--surf);border:1px solid var(--rule);border-left:2px solid var(--a-amber);border-radius:0 7px 7px 0;font-size:13.5px;color:var(--ink2)}
+.warn b{color:var(--ink)}
+
+/* ── phone frame ─────────────────────────────────────────────────────────── */
+.frame{width:414px;padding:12px;border-radius:56px;background:linear-gradient(160deg,#3a3d36,#191b16 60%,#2c2f28);box-shadow:var(--frame-shadow)}
+.screen{
+  width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;
+  background:var(--a-paper);color:var(--a-ink);
+  font-family:"DM Sans",-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.4;
+  display:flex;flex-direction:column;
+}
+.screen *{box-sizing:border-box}
+.sb{height:47px;flex:0 0 47px;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 32px;font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+.sb .ind{display:flex;gap:5px;align-items:center;opacity:.9}
+.sb .ind i{display:block;width:16px;height:10px;border:1.2px solid var(--a-ink);border-radius:2.5px;position:relative}
+.sb .ind i::after{content:"";position:absolute;inset:1.5px;right:4px;background:var(--a-ink);border-radius:1px}
+.bars{display:flex;align-items:flex-end;gap:1.5px;height:10px}
+.bars s{width:3px;background:var(--a-ink);border-radius:1px;text-decoration:none}
+.bars s:nth-child(1){height:4px}.bars s:nth-child(2){height:6px}.bars s:nth-child(3){height:8px}.bars s:nth-child(4){height:10px}
+
+.navbar{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:2px 16px 12px;background:var(--a-paper)}
+.navbar.brd{border-bottom:1px solid var(--a-border);padding-bottom:11px}
+.navbar h1{font-size:26px;font-weight:700;letter-spacing:-.03em;flex:1;min-width:0}
+.navbar h1.sm{font-size:19px;font-weight:600;letter-spacing:-.02em;text-align:center}
+.iconbtn{width:36px;height:36px;flex:0 0 36px;border-radius:12px;display:grid;place-items:center;background:transparent;border:0;color:var(--a-ink2);cursor:pointer}
+.iconbtn:hover{background:var(--a-surf)}
+.iconbtn.solid{background:var(--a-surf);border:1px solid var(--a-border)}
+.iconbtn svg{width:20px;height:20px}
+
+.body{flex:1;min-height:0;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.scroll{flex:1;min-height:0;overflow:hidden;padding:0 16px}
+.scroll.np{padding:0}
+.fade{position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(to top,var(--a-paper),transparent);pointer-events:none;z-index:3}
+
+.tabbar{flex:0 0 auto;height:82px;padding:9px 12px 26px;display:flex;background:var(--a-surf);border-top:1px solid var(--a-border)}
+.tabbar a{flex:1;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--a-ink3);font-size:10.5px;font-weight:500;letter-spacing:.01em;padding-top:4px;border-radius:12px}
+.tabbar a svg{width:23px;height:23px}
+.tabbar a.on{color:var(--a-moss)}
+.tabbar a.on svg{stroke-width:2.1}
+.homebar{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:var(--a-ink);opacity:.28}
+
+.fab{position:absolute;right:18px;bottom:98px;width:56px;height:56px;border-radius:19px;background:var(--a-moss);color:#fff;display:grid;place-items:center;border:0;cursor:pointer;box-shadow:0 4px 14px rgba(59,107,59,.34);z-index:4}
+.fab svg{width:25px;height:25px;stroke-width:2.4}
+
+.scrim{position:absolute;inset:0;background:rgba(26,26,24,.4);z-index:6}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:7;background:var(--a-surf);border-radius:26px 26px 0 0;padding:8px 18px 30px;box-shadow:0 -8px 30px rgba(26,26,24,.16);display:flex;flex-direction:column;gap:0}
+.handle{width:38px;height:4px;border-radius:2px;background:var(--a-border2);margin:2px auto 14px}
+.sheet h2{font-size:18px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
+.sheet .sub{font-size:12.5px;color:var(--a-ink3);margin-bottom:16px}
+
+/* app atoms */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
+.stat{background:var(--a-surf);border:1px solid var(--a-border);border-radius:14px;padding:11px 13px 12px}
+.stat.wide{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between}
+.stat .l{font-size:11.5px;color:var(--a-ink3);margin-bottom:2px}
+.stat .v{font-size:21px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat.wide .v{font-size:27px}
+.v.neg{color:var(--a-red)}.v.pos{color:var(--a-green)}
+.monthpill{display:inline-flex;align-items:center;gap:8px;background:var(--a-surf);border:1px solid var(--a-border);border-radius:11px;padding:6px 8px 6px 12px;font-size:13.5px;font-weight:600;letter-spacing:-.01em;cursor:pointer}
+.monthpill svg{width:15px;height:15px;color:var(--a-ink3)}
+
+.chips{display:flex;gap:6px;overflow:hidden;padding-bottom:14px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.chip{flex:0 0 auto;border:1px solid var(--a-border);background:var(--a-surf);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--a-ink2);display:flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit}
+.chip .dot{width:7px;height:7px;border-radius:50%}
+.chip.on{background:var(--a-ink);color:#fff;border-color:var(--a-ink)}
+.chip.on .dot{box-shadow:0 0 0 1.5px rgba(255,255,255,.4)}
+
+.daypill{position:sticky;top:0;background:var(--a-paper);padding:13px 0 6px;font-size:11.5px;font-weight:600;color:var(--a-ink3);letter-spacing:.01em;display:flex;justify-content:space-between}
+.daypill .t{font-variant-numeric:tabular-nums;color:var(--a-ink3);font-weight:500}
+.list{background:var(--a-surf);border:1px solid var(--a-border);border-radius:14px;overflow:hidden}
+.row{display:flex;align-items:center;gap:11px;min-height:56px;padding:9px 13px;border-bottom:1px solid var(--a-border);cursor:pointer;text-decoration:none;color:inherit}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--a-surf2)}
+.cdot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
+.row .mid{flex:1;min-width:0}
+.row .d{font-size:14.5px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .s{font-size:11.5px;color:var(--a-ink3);margin-top:1px;display:flex;gap:6px;align-items:center}
+.row .amt{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;flex:0 0 auto}
+.badge{font-size:10px;font-weight:600;padding:1.5px 6px;border-radius:5px;letter-spacing:.01em}
+.badge.paid{background:var(--a-amber-l);color:var(--a-amber)}
+.badge.forx{background:var(--a-blue-l);color:var(--a-blue)}
+.badge.sal{background:var(--a-green-l);color:var(--a-green)}
+
+.evt{display:flex;align-items:center;gap:9px;margin:16px 0 7px;font-size:12px;font-weight:600;color:var(--a-purple);letter-spacing:.01em}
+.evt::after{content:"";flex:1;height:1px;background:var(--a-purple);opacity:.26}
+.evt.end{color:var(--a-ink3)}
+.evt.end::after{background:var(--a-border2);opacity:1}
+
+.swipe{position:relative;background:var(--a-red);border-bottom:1px solid var(--a-border);overflow:hidden}
+.swipe .row{transform:translateX(-76px);border-bottom:0;background:var(--a-surf);position:relative;z-index:2}
+.swipe .del{position:absolute;top:0;bottom:0;right:0;width:76px;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;gap:3px}
+.swipe .del svg{width:19px;height:19px}
+
+.empty{text-align:center;padding:52px 30px}
+.empty .ic{width:46px;height:46px;margin:0 auto 16px;border-radius:15px;background:var(--a-surf);border:1px solid var(--a-border);display:grid;place-items:center;color:var(--a-ink3)}
+.empty .ic svg{width:22px;height:22px}
+.empty h3{font-size:16px;font-weight:600;letter-spacing:-.02em;margin-bottom:5px}
+.empty p{font-size:13px;color:var(--a-ink3);max-width:25ch;margin:0 auto 18px}
+
+.banner{display:flex;align-items:flex-start;gap:9px;background:var(--a-amber-l);border:1px solid #f0e2c4;border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:12.5px;color:#8a5806}
+.banner svg{width:16px;height:16px;flex:0 0 16px;margin-top:1px}
+.banner b{font-weight:600}
+.banner.err{background:#fdeeeb;border-color:#f2ccc4;color:#8f2d1e}
+
+/* forms */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;color:var(--a-ink2);font-weight:500;margin-bottom:5px}
+.input{width:100%;min-height:48px;border:1px solid var(--a-border2);background:var(--a-surf);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15.5px;color:var(--a-ink);display:flex;align-items:center}
+.input.ph{color:var(--a-ink3)}
+.input.big{font-size:29px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;min-height:64px;justify-content:flex-end;padding:0 16px}
+.input.focus{border-color:var(--a-moss);box-shadow:0 0 0 3px var(--a-moss-l)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;background:var(--a-surf2);border:1px solid var(--a-border);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:var(--a-ink2);padding:9px 0;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--a-surf);color:var(--a-ink);font-weight:600;box-shadow:0 1px 2px rgba(26,26,24,.1)}
+.btn{width:100%;min-height:50px;border-radius:13px;border:0;font-family:inherit;font-size:15.5px;font-weight:600;letter-spacing:-.01em;cursor:pointer;display:grid;place-items:center}
+.btn.pri{background:var(--a-moss);color:#fff}
+.btn.sec{background:var(--a-surf);color:var(--a-ink);border:1px solid var(--a-border2)}
+.btn.dan{background:transparent;color:var(--a-red);border:1px solid #e8cdc8}
+.btn.lnk{background:transparent;color:var(--a-ink2);font-weight:500;min-height:44px;font-size:14px}
+.btnrow{display:flex;gap:10px;margin-top:4px}
+.catgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.catgrid button{border:1px solid var(--a-border);background:var(--a-surf);border-radius:11px;padding:9px 2px 8px;font-family:inherit;font-size:10.5px;font-weight:500;color:var(--a-ink2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px}
+.catgrid button .dot{width:15px;height:15px;border-radius:6px}
+.catgrid button.on{border-color:var(--a-ink);background:var(--a-surf2);color:var(--a-ink);font-weight:600}
+
+/* habits */
+.weekstrip{display:flex;gap:5px;margin-bottom:16px}
+.weekstrip .day{flex:1;border:1px solid var(--a-border);background:var(--a-surf);border-radius:13px;padding:8px 0 9px;text-align:center;cursor:pointer}
+.weekstrip .day .dw{font-size:10px;color:var(--a-ink3);font-weight:500}
+.weekstrip .day .dn{font-size:15.5px;font-weight:600;letter-spacing:-.02em;margin-top:1px;font-variant-numeric:tabular-nums}
+.weekstrip .day .pip{width:4px;height:4px;border-radius:50%;background:var(--a-border2);margin:4px auto 0}
+.weekstrip .day.full .pip{background:var(--a-moss)}
+.weekstrip .day.part .pip{background:var(--a-amber)}
+.weekstrip .day.on{background:var(--a-ink);border-color:var(--a-ink)}
+.weekstrip .day.on .dw{color:rgba(255,255,255,.62)}
+.weekstrip .day.on .dn{color:#fff}
+.weekstrip .day.on .pip{background:rgba(255,255,255,.85)}
+.weekstrip .day.fut{opacity:.4}
+
+.today{background:var(--a-surf);border:1px solid var(--a-border);border-radius:16px;padding:14px 15px 4px;margin-bottom:16px}
+.today .hd{display:flex;align-items:center;gap:13px;padding-bottom:13px;border-bottom:1px solid var(--a-border)}
+.today .hd .tx{flex:1}
+.today .hd h2{font-size:16px;font-weight:600;letter-spacing:-.02em}
+.today .hd p{font-size:12px;color:var(--a-ink3);margin-top:1px}
+.ring{width:46px;height:46px;flex:0 0 46px;position:relative}
+.ring > svg{width:46px;height:46px;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:700;letter-spacing:-.03em}
+.habit{display:flex;align-items:center;gap:13px;padding:10px 0;border-bottom:1px solid var(--a-border);min-height:56px}
+.habit:last-child{border-bottom:0}
+.check{width:30px;height:30px;flex:0 0 30px;border-radius:10px;border:1.8px solid var(--a-border2);background:var(--a-surf);display:grid;place-items:center;cursor:pointer}
+.check svg{width:17px;height:17px;color:#fff;opacity:0;stroke-width:3}
+.check.on{background:var(--a-moss);border-color:var(--a-moss)}
+.check.on svg{opacity:1}
+.check.auto{background:var(--a-moss-l);border-color:#b9cfb9}
+.check.auto svg{color:var(--a-moss);opacity:1;stroke-width:2.6}
+.habit .nm{flex:1;min-width:0}
+.habit .nm b{font-size:14.5px;font-weight:500;letter-spacing:-.01em;display:block}
+.habit .nm span{font-size:11.5px;color:var(--a-ink3)}
+.habit .kbd{font-size:12px;font-weight:600;color:var(--a-ink3);font-variant-numeric:tabular-nums}
+.habit.done .nm b{color:var(--a-ink3)}
+.seclbl{font-size:11.5px;font-weight:600;color:var(--a-ink3);padding:15px 0 7px;letter-spacing:.01em;display:flex;justify-content:space-between;align-items:center}
+.prog{background:var(--a-surf);border:1px solid var(--a-border);border-radius:16px;padding:14px 15px}
+.prog h2{font-size:13.5px;font-weight:600;margin-bottom:12px;letter-spacing:-.01em}
+.pitem{margin-bottom:12px}
+.pitem:last-child{margin-bottom:0}
+.pitem .pl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+.pitem .pl b{font-weight:500}
+.pitem .pl span{color:var(--a-ink3);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--a-surf2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+
+/* content */
+.idea{display:flex;gap:11px;align-items:flex-start;padding:13px;background:var(--a-surf);border:1px solid var(--a-border);border-radius:14px;margin-bottom:8px;cursor:pointer}
+.idea .rail{width:3px;align-self:stretch;border-radius:2px;flex:0 0 3px}
+.idea .mid{flex:1;min-width:0}
+.idea .ti{font-size:15px;font-weight:600;letter-spacing:-.015em;margin-bottom:6px}
+.idea .mt{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.idea .nt{font-size:12px;color:var(--a-ink3);margin-top:7px;font-style:italic}
+.pillar{font-size:11px;font-weight:600;padding:2.5px 8px;border-radius:6px}
+.status{font-size:11px;font-weight:600;padding:2.5px 8px;border-radius:6px;border:1px solid}
+.status.idea{background:var(--a-surf2);color:var(--a-ink2);border-color:var(--a-border2)}
+.status.scripted{background:var(--a-blue-l);color:var(--a-blue);border-color:#cfe0ee}
+.status.filmed{background:var(--a-purple-l);color:var(--a-purple);border-color:#ddd2ef}
+.status.edited{background:var(--a-amber-l);color:var(--a-amber);border-color:#f0e2c4}
+.status.posted{background:var(--a-green-l);color:var(--a-green);border-color:#cfe4d6}
+.grip{color:var(--a-ink3);flex:0 0 20px;display:grid;place-items:center;align-self:center}
+.grip svg{width:17px;height:17px}
+.collapsed{display:flex;align-items:center;gap:9px;padding:13px;background:var(--a-surf2);border:1px dashed var(--a-border2);border-radius:14px;font-size:13px;font-weight:500;color:var(--a-ink2);cursor:pointer;margin-top:6px}
+.collapsed svg{width:16px;height:16px;color:var(--a-ink3)}
+.swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.swatches button{aspect-ratio:1;border-radius:9px;border:2px solid transparent;cursor:pointer}
+.swatches button.on{border-color:var(--a-ink)}
+
+/* settings */
+.sgroup{background:var(--a-surf);border:1px solid var(--a-border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.sgroup .srow{display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 14px;border-bottom:1px solid var(--a-border);font-size:14.5px;cursor:pointer}
+.sgroup .srow:last-child{border-bottom:0}
+.sgroup .srow svg.lead{width:19px;height:19px;color:var(--a-ink2);flex:0 0 19px}
+.sgroup .srow .fl{flex:1;min-width:0}
+.sgroup .srow .val{font-size:13px;color:var(--a-ink3)}
+.sgroup .srow svg.chev{width:16px;height:16px;color:var(--a-ink3);flex:0 0 16px}
+.sgroup .srow.dan{color:var(--a-red)}
+.sgrouplbl{font-size:11.5px;font-weight:600;color:var(--a-ink3);padding:4px 4px 7px}
+
+/* charts */
+.cbox{background:var(--a-surf);border:1px solid var(--a-border);border-radius:16px;padding:14px 15px;margin-bottom:12px}
+.cbox h2{font-size:13.5px;font-weight:600;margin-bottom:12px;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:center}
+.cbox h2 .tot{font-variant-numeric:tabular-nums;color:var(--a-ink2)}
+.legend{display:flex;flex-wrap:wrap;gap:9px 14px;margin-top:13px}
+.legend div{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--a-ink2);font-variant-numeric:tabular-nums}
+.legend i{width:8px;height:8px;border-radius:2.5px;display:block}
+.ovrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--a-border);font-size:13.5px}
+.ovrow:last-child{border-bottom:0}
+.ovrow .nm{flex:1}
+.ovrow .am{font-variant-numeric:tabular-nums;font-weight:600}
+.ovrow .pc{font-size:11.5px;color:var(--a-ink3);font-variant-numeric:tabular-nums;width:38px;text-align:right}
+.tot-row{display:flex;justify-content:space-between;padding-top:11px;margin-top:4px;border-top:1.5px solid var(--a-border2);font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums}
+
+@media (max-width:1180px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:0}
+  nav.rail{position:static;max-height:none;margin-bottom:40px;columns:2;column-gap:32px}
+  .block{grid-template-columns:minmax(0,1fr);gap:28px;justify-items:start}
+}
+@media (max-width:520px){
+  .wrap{padding:0 14px 70px}
+  .frame{width:100%;padding:8px;border-radius:40px}
+  .screen{width:100%;height:760px;border-radius:32px}
+  .cap{width:100%}
+  nav.rail{columns:1}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 16.5z"/><path d="M3 9h18"/><circle cx="16.5" cy="14" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-check-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.4 12.2 2.5 2.5 4.7-5"/></symbol>
+<symbol id="i-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18M3 15h18M8 4.5v15M16 4.5v15"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.2M12 18.8V21M4.2 7.5l1.9 1.1M17.9 15.4l1.9 1.1M4.2 16.5l1.9-1.1M17.9 8.6l1.9-1.1"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 5-7 7 7 7"/></symbol>
+<symbol id="i-chev-d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9.5 6 6 6-6"/></symbol>
+<symbol id="i-chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6 6 6-6 6"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6.5 7l.8 12h9.4l.8-12M10 11v5M14 11v5"/></symbol>
+<symbol id="i-grip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 7h.01M8 12h.01M8 17h.01M16 7h.01M16 12h.01M16 17h.01"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="4.5" rx="1.5"/><path d="M5 9v9.5a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18.5V9M10 13h4"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17z"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h9l-1 3 1 3H5"/></symbol>
+<symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5l1.5-3h5M5 5h14l2 8v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4z"/></symbol>
+</defs></svg>
+
+<div class="wrap">
+<header class="top">
+  <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px"><img src="logo.png" alt="" style="width:34px;height:34px;object-fit:contain"><p class="eyebrow" style="margin:0">mobile/ · expo sdk · handoff spec</p></div>
+  <h1>United Dashboard, rebuilt for Expo Go</h1>
+  <p class="lede">Every screen the mobile app needs, drawn at 390×844 with the route, React&nbsp;Native components, libraries and behaviour it expects. Frames are tappable — the tab bar, rows and buttons jump to the screen they open. The web app at the repo root is not touched; both clients read the same Supabase project.</p>
+  <dl class="facts">
+    <div class="fact"><dt>Location</dt><dd>mobile/</dd></div>
+    <div class="fact"><dt>Tabs</dt><dd>Finance · Habits · Content</dd></div>
+    <div class="fact"><dt>Screens</dt><dd>35</dd></div>
+    <div class="fact"><dt>Router</dt><dd>expo-router v4</dd></div>
+    <div class="fact"><dt>Backend</dt><dd>unchanged</dd></div>
+  </dl>
+</header>
+
+<div class="layout">
+<nav class="rail" aria-label="Screen index">
+  <h2>Start here</h2>
+  <a href="#brief"><span class="n">§</span>Build brief</a>
+  <h2>Shell &amp; auth</h2>
+  <a href="#a1"><span class="n">A1</span>Sign in</a>
+  <a href="#a2"><span class="n">A2</span>Sign in — rejected</a>
+  <a href="#a3"><span class="n">A3</span>Restoring session</a>
+  <a href="#a4"><span class="n">A4</span>Demo mode</a>
+  <a href="#a5"><span class="n">A5</span>Data load failed</a>
+  <h2>Finance</h2>
+  <a href="#b1"><span class="n">B1</span>Month ledger</a>
+  <a href="#b2"><span class="n">B2</span>Empty month</a>
+  <a href="#b3"><span class="n">B3</span>Filter sheet</a>
+  <a href="#b4"><span class="n">B4</span>Add expense</a>
+  <a href="#b5"><span class="n">B5</span>Add expense — split</a>
+  <a href="#b6"><span class="n">B6</span>Expense detail</a>
+  <a href="#b7"><span class="n">B7</span>Event marker</a>
+  <a href="#b8"><span class="n">B8</span>Insights</a>
+  <a href="#b9"><span class="n">B9</span>Income</a>
+  <a href="#b10"><span class="n">B10</span>Add income</a>
+  <a href="#b11"><span class="n">B11</span>Edit income</a>
+  <a href="#b12"><span class="n">B12</span>Converter</a>
+  <h2>Habits</h2>
+  <a href="#c1"><span class="n">C1</span>Today</a>
+  <a href="#c2"><span class="n">C2</span>Week complete</a>
+  <a href="#c3"><span class="n">C3</span>Back-fill a day</a>
+  <a href="#c4"><span class="n">C4</span>Add habit</a>
+  <a href="#c5"><span class="n">C5</span>Habit actions</a>
+  <a href="#c6"><span class="n">C6</span>Archived</a>
+  <a href="#c7"><span class="n">C7</span>No habits yet</a>
+  <h2>Content</h2>
+  <a href="#d1"><span class="n">D1</span>Pipeline</a>
+  <a href="#d2"><span class="n">D2</span>Filtered by pillar</a>
+  <a href="#d3"><span class="n">D3</span>Add idea</a>
+  <a href="#d4"><span class="n">D4</span>Idea detail</a>
+  <a href="#d5"><span class="n">D5</span>Status picker</a>
+  <a href="#d6"><span class="n">D6</span>Reorder</a>
+  <a href="#d7"><span class="n">D7</span>Pillars</a>
+  <a href="#d8"><span class="n">D8</span>Add pillar</a>
+  <a href="#d9"><span class="n">D9</span>No ideas yet</a>
+  <h2>Settings</h2>
+  <a href="#e1"><span class="n">E1</span>Settings</a>
+  <a href="#e2"><span class="n">E2</span>Sign out</a>
+  <h2>Reference</h2>
+  <a href="#tokens"><span class="n">§</span>Tokens &amp; rules</a>
+  <a href="#deps"><span class="n">§</span>Dependencies</a>
+  <a href="#files"><span class="n">§</span>File tree</a>
+  <a href="#order"><span class="n">§</span>Build order</a>
+</nav>
+
+<main>
+
+<section class="grp" id="brief">
+  <div class="grp-hd">
+    <h2>Build brief</h2>
+    <p>Read this before the screens. It fixes the decisions the mocks assume.</p>
+  </div>
+  <div class="spec" style="max-width:none">
+    <dl>
+      <dt>Scope</dt><dd>A new Expo app in <code>mobile/</code> with its own <code>package.json</code>. Three tabs — <strong>Finance</strong>, <strong>Habits</strong>, <strong>Content</strong> — plus a pushed Settings screen. <strong>No Calendar tab.</strong> The web app keeps its calendar; the phone does not get one, so no Google Calendar OAuth, no <code>expo-auth-session</code>, no time grids.</dd>
+      <dt>Backend</dt><dd>Same Supabase project, same tables, no schema change: <code>finance_transactions</code>, <code>finance_income</code>, <code>habits</code>, <code>habit_checks</code>, <code>pillars</code>, <code>content</code>. Port <code>src/services/db.js</code> across as-is — it is plain <code>supabase-js</code> with no DOM dependency. Same for <code>src/constants/index.js</code> (<code>PILLAR_COLORS</code>, <code>CAT_COLORS</code>, <code>CATS</code>, <code>RATES</code>) and the <code>useAppData</code> shape.</dd>
+      <dt>Auth</dt><dd>Supabase email/password, same as web. On native the client needs <code>AsyncStorage</code> passed in explicitly or the session is lost on every cold start:<br><code>createClient(url, key, { auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } })</code><br>Keep the web app's clock-skew retry (commit <code>3b00f96</code>): if <code>fetchAll</code> throws <code>JWT issued at future</code>, wait 2s and retry once.</dd>
+      <dt>Demo mode</dt><dd><code>user === null</code> means demo — seed from a ported <code>defaultState</code> and let every control work locally without writing to Supabase, exactly like the web app. Signed out is a usable state, not a wall.</dd>
+      <dt>Not ported</dt><dd>Anything DOM-bound: <code>prompt()</code> cell editing, <code>contentEditable</code> habit renaming, <code>document.createElement</code> HTML stripping, <code>localStorage</code>. Every one of those becomes a bottom sheet or <code>AsyncStorage</code>. Rule for the whole app: <strong>a row never edits in place — tapping it opens a sheet.</strong></dd>
+      <dt>Touch floor</dt><dd>44×44pt minimum on everything tappable. List rows are 56pt. Destructive actions are swipe-to-reveal or inside a sheet, never a 16pt <code>×</code> in a table cell.</dd>
+      <dt>Frames</dt><dd>390×844 (iPhone 14/15/16 logical size). 47pt status bar, 82pt tab bar including the 26pt home-indicator inset. Take these from <code>useSafeAreaInsets()</code>, never hardcode.</dd>
+    </dl>
+    <div class="warn"><b>One thing to confirm before building:</b> these mocks are drawn light-only, matching the web app. If the mobile app should also do dark mode, say so now — it changes every token below from a constant into a pair.</div>
+  </div>
+</section>
+
+<section class="grp" id="grp-a">
+  <div class="grp-hd">
+    <h2>Shell &amp; auth</h2>
+    <p>The first screen is sign-in. Nothing else loads before it resolves.</p>
+  </div>
+
+  <article class="block" id="a1">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="body">
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 32px 60px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:44px">
+              <img src="logo.png" alt="dashboard" style="width:36px;height:36px;object-fit:contain;mix-blend-mode:multiply">
+              <span style="font-size:22px;font-weight:700;letter-spacing:-.035em">dashboard</span>
+            </div>
+            <div class="field"><label>Email</label><div class="input ph">you@email.com</div></div>
+            <div class="field" style="margin-bottom:22px"><label>Password</label><div class="input ph">••••••••</div></div>
+            <a href="#b1" class="btn pri" style="text-decoration:none">Sign in</a>
+            <a href="#a4" class="btn lnk" style="margin-top:6px;text-decoration:none">Continue without an account</a>
+          </div>
+          <p style="text-align:center;font-size:11.5px;color:var(--a-ink3);padding:0 40px 34px;line-height:1.5">Signing in syncs the same money, habits and ideas you see on the web dashboard.</p>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>A1</b> Sign in</p>
+    </div>
+    <div class="spec">
+      <h3>Sign in</h3>
+      <p class="route">app/(auth)/sign-in.tsx · initial route</p>
+      <p class="what">Two fields, one button, one way out. No hero, no illustration, no tab bar — the wordmark carries the identity and the eye lands on the email field. Everything sits in the lower two-thirds so the fields stay above the keyboard when it opens.</p>
+      <dl>
+        <dt>Components</dt><dd><code>SafeAreaView</code> → <code>KeyboardAvoidingView behavior="padding"</code> → <code>View</code>. Fields are <code>TextInput</code> with <code>autoCapitalize="none"</code>, <code>keyboardType="email-address"</code>, <code>textContentType="emailAddress"</code> / <code>"password"</code>, <code>secureTextEntry</code> on the second. Submit is <code>Pressable</code>.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Email field is focused on mount; return key on email moves to password, on password submits.</li>
+          <li><strong>Sign in</strong> → <code>supabase.auth.signInWithPassword</code>. While pending the label swaps to an <code>ActivityIndicator</code> and the button disables — never leave it looking tappable mid-request.</li>
+          <li><strong>Continue without an account</strong> → <code>router.replace('/finance')</code> with <code>user = null</code>, which puts the app in demo mode (A4).</li>
+          <li>On success <code>router.replace('/finance')</code>. Do not push — the back gesture must not return to sign-in.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>The button says <strong>Sign in</strong> and the success state is being signed in. No "Submit", no "Log In", no title case.</dd>
+        <dt>States</dt><dd>idle · focused · submitting · rejected (A2)</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="a2">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="body">
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 32px 60px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:44px">
+              <img src="logo.png" alt="dashboard" style="width:36px;height:36px;object-fit:contain;mix-blend-mode:multiply">
+              <span style="font-size:22px;font-weight:700;letter-spacing:-.035em">dashboard</span>
+            </div>
+            <div class="banner err"><svg><use href="#i-info"></use></svg><span>That email and password don’t match. Check the password, or use the web dashboard to reset it.</span></div>
+            <div class="field"><label>Email</label><div class="input">lucentwooo@gmail.com</div></div>
+            <div class="field" style="margin-bottom:22px"><label>Password</label><div class="input focus ph">••••••</div></div>
+            <div class="btn pri">Sign in</div>
+            <div class="btn lnk" style="margin-top:6px">Continue without an account</div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>A2</b> Sign in — rejected</p>
+    </div>
+    <div class="spec">
+      <h3>Sign in — rejected</h3>
+      <p class="route">app/(auth)/sign-in.tsx · error state</p>
+      <p class="what">The error sits above the fields, not under the button, so it is visible with the keyboard up. It names what failed and where to fix it. Supabase's raw <code>Invalid login credentials</code> is never shown.</p>
+      <dl>
+        <dt>Components</dt><dd>Inline <code>View</code> banner. Not a <code>Toast</code>, not an <code>Alert</code> — the message has to stay on screen while they retype.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Password field keeps focus and clears; email is left alone.</li>
+          <li>Border turns <code>--moss</code> on focus, not red — the field isn't wrong, the pair was.</li>
+          <li><code>Haptics.notificationAsync(Warning)</code> once. No shake animation.</li>
+          <li>Banner clears on the next keystroke in either field.</li>
+        </ul></dd>
+        <dt>Error map</dt><dd><code>invalid_credentials</code> → the copy above · network failure → “Can’t reach the server. Check your connection and try again.” · anything else → “Sign-in failed. Try again in a moment.” Log the real error, show the mapped one.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="a3">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="body">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-bottom:70px">
+            <img src="logo.png" alt="" style="width:38px;height:38px;object-fit:contain;mix-blend-mode:multiply;opacity:.85">
+            <span style="font-size:12.5px;color:var(--a-ink3)">Loading your dashboard…</span>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>A3</b> Restoring session</p>
+    </div>
+    <div class="spec">
+      <h3>Restoring session</h3>
+      <p class="route">app/_layout.tsx · gate while <code>user === undefined</code></p>
+      <p class="what">Shown between app launch and the first resolved auth state, and again while <code>fetchAll</code> runs for a signed-in user. Same two conditions the web app gates on in <code>App.jsx</code>.</p>
+      <dl>
+        <dt>Components</dt><dd>The root layout returns this instead of the <code>Stack</code> until auth resolves. Pair it with <code>expo-splash-screen</code>: <code>preventAutoHideAsync()</code> at module load, <code>hideAsync()</code> once auth settles, so there is no white flash between splash and this.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Usually 200–400ms. Don't animate anything in — a spinner that fades in is slower than no spinner.</li>
+          <li>If it exceeds ~8s, swap to A5 rather than spinning forever.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“Loading your dashboard…” — not “Please wait”.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="a4">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><a class="iconbtn" href="#e1"><svg><use href="#i-gear"></use></svg></a></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="banner"><svg><use href="#i-info"></use></svg><span><b>Demo data.</b> Nothing you change here is saved. <a href="#a1" style="color:#8a5806;font-weight:600">Sign in</a> to keep it.</span></div>
+            <div class="monthpill" style="margin-bottom:14px">September 2026 <svg><use href="#i-chev-d"></use></svg></div>
+            <div class="stats">
+              <div class="stat wide"><div><div class="l">Net this month</div><div class="v pos">+$245.89</div></div></div>
+              <div class="stat"><div class="l">Out</div><div class="v neg">$150.84</div></div>
+              <div class="stat"><div class="l">In</div><div class="v">$396.73</div></div>
+            </div>
+            <div class="daypill"><span>Mon 7 Sep</span><span class="t">$53.00</span></div>
+            <div class="list">
+              <div class="row"><span class="cdot" style="background:var(--c-transport)"></span><span class="mid"><span class="d">Fuel</span><span class="s">Transport</span></span><span class="amt">$42.00</span></div>
+              <div class="row"><span class="cdot" style="background:var(--c-recurring)"></span><span class="mid"><span class="d">Spotify</span><span class="s">Recurring</span></span><span class="amt">$3.50</span></div>
+              <div class="row"><span class="cdot" style="background:var(--c-recurring)"></span><span class="mid"><span class="d">Apple iCloud</span><span class="s">Recurring</span></span><span class="amt">$7.50</span></div>
+            </div>
+            <div class="daypill"><span>Thu 10 Sep</span><span class="t">$21.20</span></div>
+            <div class="list">
+              <div class="row"><span class="cdot" style="background:var(--c-food)"></span><span class="mid"><span class="d">Pafu</span><span class="s">Food</span></span><span class="amt">$5.20</span></div>
+              <div class="row"><span class="cdot" style="background:var(--c-food)"></span><span class="mid"><span class="d">Charrd</span><span class="s">Food</span></span><span class="amt">$16.00</span></div>
+            </div>
+          </div>
+          <div class="fade"></div>
+          <a class="fab" href="#b4"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a class="on" href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>A4</b> Demo mode</p>
+    </div>
+    <div class="spec">
+      <h3>Demo mode</h3>
+      <p class="route">any tab · <code>isDemo === true</code></p>
+      <p class="what">Signed out, the app is fully usable against the ported <code>defaultState</code>. The banner is the only difference: it says what's true, once, at the top of the first tab, and offers the fix inline.</p>
+      <dl>
+        <dt>Components</dt><dd>Banner rendered by the tab layout above <code>{children}</code>, so it shows on whichever tab is open. Amber tokens, <strong>not</strong> red — nothing is broken.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Every mutation writes to local state only; no Supabase call is attempted.</li>
+          <li><strong>Sign in</strong> → <code>router.push('/sign-in')</code> as a modal so demo state survives a cancel.</li>
+          <li>Not dismissible. One line at the top of a scroll view costs nothing and stops someone logging a week of expenses into nothing.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“Demo data. Nothing you change here is saved. Sign in to keep it.” States the consequence first.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="a5">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><a class="iconbtn" href="#e1"><svg><use href="#i-gear"></use></svg></a></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="empty" style="padding-top:96px">
+              <div class="ic" style="color:var(--a-red);border-color:#f0d4ce"><svg><use href="#i-info"></use></svg></div>
+              <h3>Couldn’t load your data</h3>
+              <p style="max-width:28ch">The server didn’t answer. Your data is safe — this device just couldn’t reach it.</p>
+              <div style="display:flex;flex-direction:column;gap:8px;max-width:210px;margin:0 auto">
+                <div class="btn pri" style="min-height:46px;font-size:14.5px">Try again</div>
+                <div class="btn lnk">Use demo data instead</div>
+              </div>
+              <p style="margin-top:22px;font-size:11px;color:var(--a-ink3);max-width:30ch">Network request failed (PGRST000)</p>
+            </div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <a class="on" href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>A5</b> Data load failed</p>
+    </div>
+    <div class="spec">
+      <h3>Data load failed</h3>
+      <p class="route">app/(tabs)/_layout.tsx · <code>dataError !== null</code></p>
+      <p class="what">Replaces the tab's content, keeping the tab bar live so the person isn't trapped. The web app currently drops a bare error card here; the phone gets a way out.</p>
+      <dl>
+        <dt>Components</dt><dd>Centred <code>View</code>. Tab bar stays mounted. The raw error string sits at the bottom at 11pt for screenshots — useful, and out of the way.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><strong>Try again</strong> re-runs <code>fetchAll(user.id)</code>, including the <code>JWT issued at future</code> retry.</li>
+          <li><strong>Use demo data instead</strong> loads <code>defaultState</code> and shows the A4 banner — reading last month's spending beats a dead screen.</li>
+          <li>Pull-to-refresh on the tab also retries.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>Says what happened and that the data is safe. No apology, no “Oops”.</dd>
+      </dl>
+    </div>
+  </article>
+</section>
+
+<section class="grp" id="grp-b">
+  <div class="grp-hd">
+    <h2>Finance</h2>
+    <p>The heaviest tab and the one that opens first. The web app's spreadsheet becomes a date-grouped ledger: one tap to read, one tap to fix, a thumb-reachable button to add.</p>
+  </div>
+
+  <article class="block" id="b1">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><a class="iconbtn" href="#b8"><svg><use href="#i-chart"></use></svg></a><a class="iconbtn" href="#b3"><svg><use href="#i-filter"></use></svg></a><a class="iconbtn" href="#e1"><svg><use href="#i-gear"></use></svg></a></div>
+        <div class="body">
+          <div class="scroll">
+            <a class="monthpill" href="#b3" style="margin-bottom:14px;text-decoration:none;color:inherit">September 2026 <svg><use href="#i-chev-d"></use></svg></a>
+            <div class="stats">
+              <div class="stat wide"><div><div class="l">Net this month</div><div class="v pos">+$245.89</div></div><a href="#b9" style="font-size:12px;color:var(--a-moss);font-weight:600;text-decoration:none">Income →</a></div>
+              <div class="stat"><div class="l">Out</div><div class="v neg">$150.84</div></div>
+              <div class="stat"><div class="l">In</div><div class="v">$396.73</div></div>
+            </div>
+            <div class="daypill"><span>Mon 7 Sep</span><span class="t">$53.00</span></div>
+            <div class="list">
+              <a class="row" href="#b6"><span class="cdot" style="background:var(--c-transport)"></span><span class="mid"><span class="d">Fuel</span><span class="s">Transport</span></span><span class="amt">$42.00</span></a>
+              <div class="swipe"><a class="row" href="#b6"><span class="cdot" style="background:var(--c-recurring)"></span><span class="mid"><span class="d">Spotify</span><span class="s">Recurring</span></span><span class="amt">$3.50</span></a><span class="del"><svg><use href="#i-trash"></use></svg>Delete</span></div>
+              <a class="row" href="#b6"><span class="cdot" style="background:var(--c-recurring)"></span><span class="mid"><span class="d">Apple iCloud</span><span class="s">Recurring</span></span><span class="amt">$7.50</span></a>
+            </div>
+            <div class="daypill"><span>Thu 10 Sep</span><span class="t">$21.20</span></div>
+            <div class="list">
+              <a class="row" href="#b6"><span class="cdot" style="background:var(--c-food)"></span><span class="mid"><span class="d">Pafu</span><span class="s">Food</span></span><span class="amt">$5.20</span></a>
+              <a class="row" href="#b6"><span class="cdot" style="background:var(--c-food)"></span><span class="mid"><span class="d">Charrd</span><span class="s">Food</span></span><span class="amt">$16.00</span></a>
+            </div>
+            <div class="evt"><svg width="13" height="13" style="color:var(--a-purple)"><use href="#i-flag"></use></svg>KASA Retreat</div>
+            <div class="daypill" style="padding-top:6px"><span>Sat 12 Sep · today</span><span class="t">$48.31</span></div>
+            <div class="list">
+              <a class="row" href="#b6"><span class="cdot" style="background:var(--c-food)"></span><span class="mid"><span class="d">Brunch</span><span class="s">Food</span></span><span class="amt">$21.00</span></a>
+              <a class="row" href="#b6"><span class="cdot" style="background:var(--c-food)"></span><span class="mid"><span class="d">Froyo</span><span class="s">Food <span class="badge paid">paid · Duleesha</span></span></span><span class="amt">$10.36</span></a>
+            </div>
+          </div>
+          <div class="fade"></div>
+          <a class="fab" href="#b4"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a class="on" href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>B1</b> Month ledger · default screen</p>
+    </div>
+    <div class="spec">
+      <h3>Month ledger</h3>
+      <p class="route">app/(tabs)/finance/index.tsx · initial tab</p>
+      <p class="what">The web app's five-column table, re-cut as a ledger. Money right-aligns in one tabular column so the eye can total it going down. Days are the structure — a sticky day header with that day's subtotal replaces the repeated date cell, which is the column the phone can least afford. Category is a 9pt colour dot plus its name in the subtitle, not a chip, because the dot already carries it.</p>
+      <dl>
+        <dt>Components</dt><dd><code>FlashList</code> (or <code>SectionList</code>) with one section per date, <code>stickySectionHeadersEnabled</code>. Rows are <code>Swipeable</code> from <code>react-native-gesture-handler</code>. <code>RefreshControl</code> on the list re-runs <code>fetchAll</code>.</dd>
+        <dt>Data</dt><dd><code>fetchTransactions(userId)</code>, unchanged. Rows come back already ordered by <code>date, sort_order</code>. Group client-side by <code>date</code>; <code>row_type</code> <code>'header'</code> and <code>'end'</code> are not expenses — render them as the event marker rules below.</dd>
+        <dt>Event markers</dt><dd>A <code>header</code> row renders as a purple rule with a flag and the label, spanning the width; the matching <code>end</code> row renders as a grey closing rule (see B7). They sit <em>between</em> day sections, never inside a list card. Everything between the two belongs to that event.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><strong>Row tap</strong> → expense detail sheet (B6). Never inline editing.</li>
+          <li><strong>Swipe left</strong> reveals Delete at 76pt. Confirm with <code>Haptics.impactAsync(Medium)</code> + an undo toast for 4s; delete from Supabase when the toast expires, so undo costs no round trip.</li>
+          <li><strong>Month pill</strong> → filter sheet (B3). <strong>Filter icon</strong> → same sheet. <strong>Chart icon</strong> → Insights (B8). <strong>Income →</strong> → Income (B9).</li>
+          <li><strong>FAB</strong> → add expense (B4). It sits 98pt from the bottom, clear of the tab bar, right side for thumb reach.</li>
+          <li>Day headers show that day's expense subtotal, right-aligned on the same column as the rows.</li>
+        </ul></dd>
+        <dt>Number rule</dt><dd>Every figure uses <code>fontVariant: ['tabular-nums']</code> and two decimals. Net is signed and coloured (<code>--green</code> positive, <code>--red</code> negative); Out is red, In is plain ink — only one number per screen gets to be big.</dd>
+        <dt>Type badges</dt><dd><code>tx_type</code> <code>paid</code> → amber <code>paid · Name</code>; <code>for</code> → blue <code>for · Name</code>; <code>normal</code> → nothing at all. The web app's <code>—</code> placeholder badge is dropped; empty is quieter than a dash.</dd>
+      </dl>
+      <div class="warn"><b>Don't</b> keep a horizontally scrolling table. Two-axis scrolling is the single worst thing on the existing mobile web build, and it's what this screen exists to replace.</div>
+    </div>
+  </article>
+
+  <article class="block" id="b2">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><span class="iconbtn"><svg><use href="#i-chart"></use></svg></span><span class="iconbtn"><svg><use href="#i-filter"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="monthpill" style="margin-bottom:14px">October 2026 <svg><use href="#i-chev-d"></use></svg></div>
+            <div class="stats">
+              <div class="stat wide"><div><div class="l">Net this month</div><div class="v" style="color:var(--a-ink3)">$0.00</div></div></div>
+              <div class="stat"><div class="l">Out</div><div class="v" style="color:var(--a-ink3)">$0.00</div></div>
+              <div class="stat"><div class="l">In</div><div class="v" style="color:var(--a-ink3)">$0.00</div></div>
+            </div>
+            <div class="empty">
+              <div class="ic"><svg><use href="#i-inbox"></use></svg></div>
+              <h3>Nothing spent in October</h3>
+              <p>Add the first expense and it’ll show up here, grouped by day.</p>
+              <a href="#b4" class="btn pri" style="max-width:190px;margin:0 auto;min-height:46px;font-size:14.5px;text-decoration:none">Add an expense</a>
+            </div>
+          </div>
+          <a class="fab" href="#b4"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a class="on" href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>B2</b> Empty month</p>
+    </div>
+    <div class="spec">
+      <h3>Empty month</h3>
+      <p class="route">app/(tabs)/finance/index.tsx · <code>ListEmptyComponent</code></p>
+      <p class="what">The stat cards stay — zeros for a month are information, and removing them makes the screen look broken rather than empty. Below them, one instruction and the action that resolves it.</p>
+      <dl>
+        <dt>Components</dt><dd><code>ListEmptyComponent</code> on the section list. Stat cards live in <code>ListHeaderComponent</code> so they render either way.</dd>
+        <dt>Behaviour</dt><dd>Zeros render in <code>--ink3</code>, not red — nothing spent isn't a negative. The button does exactly what the FAB does; both are fine to keep.</dd>
+        <dt>Copy</dt><dd>Names the actual month. “Nothing spent in October”, not “No data”. The second line says what will happen, so the empty screen teaches the grouping.</dd>
+        <dt>Variant</dt><dd>If a filter is active and hides everything, the copy changes to “No Food or Transport spending in October” with a <strong>Clear filters</strong> button instead — an empty result from a filter is a different problem from an empty month.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b3">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><span class="iconbtn"><svg><use href="#i-chart"></use></svg></span><span class="iconbtn"><svg><use href="#i-filter"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="opacity:.55">
+            <div class="monthpill" style="margin-bottom:14px">September 2026 <svg><use href="#i-chev-d"></use></svg></div>
+            <div class="stats"><div class="stat wide"><div><div class="l">Net this month</div><div class="v pos">+$245.89</div></div></div><div class="stat"><div class="l">Out</div><div class="v neg">$150.84</div></div><div class="stat"><div class="l">In</div><div class="v">$396.73</div></div></div>
+          </div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px"><h2 style="margin:0">Filter</h2><span style="font-size:13px;color:var(--a-moss);font-weight:600">Reset</span></div>
+            <div class="field">
+              <label>Month</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="iconbtn solid"><svg><use href="#i-back"></use></svg></span>
+                <div class="input" style="flex:1;justify-content:center;font-weight:600;min-height:44px">September 2026</div>
+                <span class="iconbtn solid"><svg><use href="#i-chev-r"></use></svg></span>
+              </div>
+              <div class="seg" style="margin-top:8px"><button class="on">This month</button><button>Whole year</button></div>
+            </div>
+            <div class="field" style="margin-bottom:18px">
+              <label>Categories</label>
+              <div class="catgrid">
+                <button class="on"><span class="dot" style="background:var(--c-transport)"></span>Transport</button>
+                <button class="on"><span class="dot" style="background:var(--c-food)"></span>Food</button>
+                <button><span class="dot" style="background:var(--c-events)"></span>Events</button>
+                <button><span class="dot" style="background:var(--c-misc)"></span>Misc</button>
+                <button><span class="dot" style="background:var(--c-clothes)"></span>Clothes</button>
+                <button><span class="dot" style="background:var(--c-recurring)"></span>Recurring</button>
+                <button><span class="dot" style="background:var(--c-gifts)"></span>Gifts</button>
+              </div>
+            </div>
+            <a href="#b1" class="btn pri" style="text-decoration:none">Show 5 expenses</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B3</b> Filter sheet</p>
+    </div>
+    <div class="spec">
+      <h3>Filter sheet</h3>
+      <p class="route">presented over app/(tabs)/finance/index.tsx</p>
+      <p class="what">One sheet holds what the web toolbar spreads across a year stepper, a month <code>&lt;select&gt;</code>, a “This month” reset and a row of category chips. Categories become a 4-across grid of tappable tiles — 7 chips in a horizontal scroller hides the last three, and hidden filter state is how you end up confused about your own totals.</p>
+      <dl>
+        <dt>Components</dt><dd><code>@gorhom/bottom-sheet</code>, <code>enableDynamicSizing</code>, one detent. Backdrop dims to 40% and dismisses on tap. Tiles are <code>Pressable</code>, multi-select, mirroring <code>activeFilters</code>.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Month stepper replaces the <code>&lt;select&gt;</code>; it crosses years, so the separate year stepper disappears.</li>
+          <li><strong>Whole year</strong> is the ported <code>monthFilter === 'all'</code>. <strong>This month</strong> resets to today.</li>
+          <li>Empty category selection means all categories, same as the web app's empty <code>activeFilters</code>.</li>
+          <li>The primary button counts the result live — <strong>Show 5 expenses</strong> — so the outcome is known before committing.</li>
+          <li><strong>Reset</strong> clears categories and returns to the current month.</li>
+        </ul></dd>
+        <dt>State</dt><dd>Held in the Finance tab, not global. Persist the last month viewed in <code>AsyncStorage</code> so reopening the app lands where they left off.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b4">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><span class="iconbtn"><svg><use href="#i-chart"></use></svg></span><span class="iconbtn"><svg><use href="#i-filter"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="opacity:.5"><div class="monthpill">September 2026 <svg><use href="#i-chev-d"></use></svg></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>New expense</h2>
+            <div class="input big" style="margin:6px 0 16px">$<span style="flex:1;text-align:right">24.60</span></div>
+            <div class="field">
+              <label>Category</label>
+              <div class="catgrid">
+                <button><span class="dot" style="background:var(--c-transport)"></span>Transport</button>
+                <button class="on"><span class="dot" style="background:var(--c-food)"></span>Food</button>
+                <button><span class="dot" style="background:var(--c-events)"></span>Events</button>
+                <button><span class="dot" style="background:var(--c-misc)"></span>Misc</button>
+                <button><span class="dot" style="background:var(--c-clothes)"></span>Clothes</button>
+                <button><span class="dot" style="background:var(--c-recurring)"></span>Recurring</button>
+                <button><span class="dot" style="background:var(--c-gifts)"></span>Gifts</button>
+              </div>
+            </div>
+            <div class="field"><label>What was it</label><div class="input">Hanaichi</div></div>
+            <div class="row2">
+              <div class="field"><label>Date</label><div class="input" style="justify-content:space-between">Today<svg width="15" height="15" style="color:var(--a-ink3)"><use href="#i-chev-d"></use></svg></div></div>
+              <div class="field"><label>Split</label><div class="input" style="justify-content:space-between;color:var(--a-ink3)">Just me<svg width="15" height="15" style="color:var(--a-ink3)"><use href="#i-chev-d"></use></svg></div></div>
+            </div>
+            <a href="#b1" class="btn pri" style="margin-top:4px;text-decoration:none">Add expense</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B4</b> Add expense</p>
+    </div>
+    <div class="spec">
+      <h3>Add expense</h3>
+      <p class="route">presented over app/(tabs)/finance/index.tsx</p>
+      <p class="what">The amount is the reason this sheet exists, so it gets the 29pt tabular figure and the focus on open. Everything under it is a default someone can leave alone: today's date, just me, and the category they last used. Two taps and a number is a complete expense.</p>
+      <dl>
+        <dt>Components</dt><dd><code>@gorhom/bottom-sheet</code> with <code>keyboardBehavior="interactive"</code> and <code>android_keyboardInputMode="adjustResize"</code>. Amount is a <code>TextInput</code>, <code>keyboardType="decimal-pad"</code>, <code>autoFocus</code>. Date opens <code>DateTimePicker</code> from <code>@react-native-community/datetimepicker</code> in <code>spinner</code>/<code>inline</code> mode.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Category defaults to the last one used, persisted in <code>AsyncStorage</code> — most people's expenses cluster.</li>
+          <li>Date shows <strong>Today</strong> / <strong>Yesterday</strong> as words before falling back to <code>Sat 12 Sep</code>.</li>
+          <li><strong>Split</strong> opens the variant in B5. Left as <strong>Just me</strong> it writes <code>tx_type: 'normal'</code>, <code>person: ''</code>.</li>
+          <li>Submit is disabled until amount &gt; 0. On success: <code>Haptics.impactAsync(Light)</code>, sheet closes, the new row animates into its day group.</li>
+          <li><strong>Optimistic write.</strong> Insert into local state immediately, then <code>insertTransaction</code>. On failure roll back and show “Couldn’t save that expense. Tap to retry.”</li>
+        </ul></dd>
+        <dt>sort_order</dt><dd>Same rule as the web app — append within the date, and keep the value above any unclosed event <code>end</code> row for that date so event grouping survives.</dd>
+        <dt>Copy</dt><dd>“What was it” beats “Details”. The button says <strong>Add expense</strong>, and the row that appears is the confirmation — no toast needed on success.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b5">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><span class="iconbtn"><svg><use href="#i-chart"></use></svg></span><span class="iconbtn"><svg><use href="#i-filter"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="opacity:.5"><div class="monthpill">September 2026 <svg><use href="#i-chev-d"></use></svg></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>New expense</h2>
+            <div class="input big" style="margin:6px 0 16px">$<span style="flex:1;text-align:right">10.36</span></div>
+            <div class="field"><label>Category</label>
+              <div class="catgrid">
+                <button><span class="dot" style="background:var(--c-transport)"></span>Transport</button>
+                <button class="on"><span class="dot" style="background:var(--c-food)"></span>Food</button>
+                <button><span class="dot" style="background:var(--c-events)"></span>Events</button>
+                <button><span class="dot" style="background:var(--c-misc)"></span>Misc</button>
+              </div>
+            </div>
+            <div class="field"><label>What was it</label><div class="input">Froyo</div></div>
+            <div class="field">
+              <label>Split</label>
+              <div class="seg"><button>Just me</button><button class="on">Someone paid</button><button>I paid for</button></div>
+            </div>
+            <div class="field"><label>Who paid</label><div class="input">Duleesha</div></div>
+            <a href="#b1" class="btn pri" style="margin-top:4px;text-decoration:none">Add expense</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B5</b> Add expense — split</p>
+    </div>
+    <div class="spec">
+      <h3>Add expense — split</h3>
+      <p class="route">same sheet · <code>tx_type !== 'normal'</code></p>
+      <p class="what">The web app's <code>&lt;select&gt;</code> of <code>normal / paid / for</code> becomes a three-way segmented control with names instead of jargon, and the name field appears only when it's needed — the same conditional the web app already has in <code>nameFieldVisible</code>.</p>
+      <dl>
+        <dt>Mapping</dt><dd><strong>Just me</strong> → <code>tx_type: 'normal'</code> · <strong>Someone paid</strong> → <code>'paid'</code> · <strong>I paid for</strong> → <code>'for'</code>. The person's name goes to <code>person</code>. Field label follows the choice: <em>Who paid</em> / <em>Who it was for</em>.</dd>
+        <dt>Components</dt><dd>Segmented control is three <code>Pressable</code>s in a <code>--surf2</code> track. The name field mounts with <code>LayoutAnimation</code> or a Reanimated height transition — motion here shows what changed, which is the one kind worth having.</dd>
+        <dt>Behaviour</dt><dd>Switching back to <strong>Just me</strong> clears <code>person</code>. Name is optional; the badge renders as bare <code>paid</code> without it, matching the web app.</dd>
+        <dt>Copy</dt><dd>Plain language over data model: “Someone paid”, not “Paid”. The badge on the ledger row stays short — <code>paid · Duleesha</code>.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b6">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><span class="iconbtn"><svg><use href="#i-chart"></use></svg></span><span class="iconbtn"><svg><use href="#i-filter"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="opacity:.5"><div class="monthpill">September 2026 <svg><use href="#i-chev-d"></use></svg></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:2px"><span class="cdot" style="background:var(--c-food);width:11px;height:11px"></span><h2 style="margin:0;flex:1">Froyo</h2><span style="font-size:22px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums">$10.36</span></div>
+            <p class="sub">Food · Sat 12 Sep · during KASA Retreat</p>
+            <div class="sgroup" style="margin-bottom:14px">
+              <div class="srow"><svg class="lead"><use href="#i-pencil"></use></svg><span class="fl">Amount</span><span class="val">$10.36</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              <div class="srow"><svg class="lead"><use href="#i-inbox"></use></svg><span class="fl">Category</span><span class="val">Food</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              <div class="srow"><svg class="lead"><use href="#i-swap"></use></svg><span class="fl">Split</span><span class="val">Duleesha paid</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+            </div>
+            <div class="btnrow"><a href="#b1" class="btn sec" style="text-decoration:none">Done</a><div class="btn dan">Delete</div></div>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B6</b> Expense detail</p>
+    </div>
+    <div class="spec">
+      <h3>Expense detail</h3>
+      <p class="route">presented over app/(tabs)/finance/index.tsx</p>
+      <p class="what">This sheet is the whole answer to <code>prompt()</code>. Each field is a 52pt row showing its current value; tapping one turns that row into the right editor in place — number pad for amount, category grid for category, the split control for split. The header restates the expense so there is no doubt which row is being changed.</p>
+      <dl>
+        <dt>Components</dt><dd>Bottom sheet, dynamic height. Rows are <code>Pressable</code>; the expanded editor replaces the row rather than opening a second sheet — stacked sheets on a phone lose people.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Each edit fires <code>updateTransaction(id, changes)</code> on commit, with the same <code>type → tx_type</code> mapping the web <code>db.js</code> already does.</li>
+          <li>Changing the date re-groups the row into another day section; animate the move so it's not startling.</li>
+          <li><strong>Delete</strong> asks once via <code>Alert.alert</code> with a destructive style, then removes and shows a 4s undo toast.</li>
+          <li>The event line — “during KASA Retreat” — is derived from the surrounding <code>header</code>/<code>end</code> rows and is read-only here. Event membership is changed by moving the markers (B7), not the expense.</li>
+        </ul></dd>
+        <dt>Don't</dt><dd>No separate “Edit expense” screen, and no Save button. Fields commit as they're set; <strong>Done</strong> only dismisses.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b7">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Finance</h1><span class="iconbtn"><svg><use href="#i-chart"></use></svg></span><span class="iconbtn"><svg><use href="#i-filter"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="opacity:.5">
+            <div class="evt" style="margin-top:8px"><svg width="13" height="13" style="color:var(--a-purple)"><use href="#i-flag"></use></svg>KASA Retreat</div>
+            <div class="list"><div class="row"><span class="cdot" style="background:var(--c-food)"></span><span class="mid"><span class="d">Brunch</span><span class="s">Food</span></span><span class="amt">$21.00</span></div></div>
+            <div class="evt end"><svg width="13" height="13"><use href="#i-flag"></use></svg>End of KASA Retreat</div>
+          </div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>Event marker</h2>
+            <p class="sub">Everything logged between a start and an end is grouped under that event.</p>
+            <div class="field"><label>Name</label><div class="input">KASA Retreat</div></div>
+            <div class="field"><label>Starts</label><div class="input" style="justify-content:space-between">Sat 12 Sep<svg width="15" height="15" style="color:var(--a-ink3)"><use href="#i-chev-d"></use></svg></div></div>
+            <div class="field" style="margin-bottom:18px">
+              <div class="sgroup" style="margin:0">
+                <div class="srow"><svg class="lead" style="color:var(--a-purple)"><use href="#i-flag"></use></svg><span class="fl">End this event</span><span class="val">Sun 13 Sep</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              </div>
+            </div>
+            <div class="btnrow"><a href="#b1" class="btn sec" style="text-decoration:none">Cancel</a><a href="#b1" class="btn pri" style="text-decoration:none">Save marker</a></div>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B7</b> Event marker</p>
+    </div>
+    <div class="spec">
+      <h3>Event marker</h3>
+      <p class="route">presented over app/(tabs)/finance/index.tsx</p>
+      <p class="what">The web app has two separate buttons, <em>Add Header</em> and <em>End Event</em>, with the second disabled until a header is unclosed. On the phone that's one sheet: name the event, say when it starts, and close it from the same place when it's over.</p>
+      <dl>
+        <dt>Opened from</dt><dd>A <strong>Start an event</strong> row at the bottom of the add-expense sheet, and by tapping an existing purple marker on the ledger.</dd>
+        <dt>Data</dt><dd>Writes <code>row_type: 'header'</code> and, on close, <code>row_type: 'end'</code> with <code>header_id</code> pointing at it. Both go through <code>insertTransaction</code> untouched.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><strong>End this event</strong> is hidden while no event is open and enabled only for the unclosed one — same guard as the web <code>hasUnclosedHeader</code>.</li>
+          <li><code>sort_order</code> for the <code>end</code> row must keep it last on its date, or later expenses on that date fall outside the event. This is the ordering bug already fixed on web in commit <code>4a6bef4</code> — port that logic, don't re-derive it.</li>
+          <li>Deleting a <code>header</code> deletes its matching <code>end</code> too. Expenses between them are untouched; they just stop being grouped.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“Event marker”, with one line explaining what grouping means. Nobody guesses what a header row is from its name.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b8">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><a class="iconbtn" href="#b1"><svg><use href="#i-back"></use></svg></a><h1 class="sm">Insights</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:14px">
+            <div class="cbox">
+              <h2>Where September went <span class="tot">$150.84</span></h2>
+              <div style="display:flex;align-items:center;gap:16px">
+                <div style="position:relative;width:132px;height:132px;flex:0 0 132px">
+                  <svg viewBox="0 0 100 100" width="132" height="132" role="img" aria-label="Transport 47%, Food 46%, Recurring 7%">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#f0eee8" stroke-width="13"></circle>
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#a8c4e0" stroke-width="13" stroke-dasharray="123.05 263.89" stroke-dashoffset="0" transform="rotate(-90 50 50)"></circle>
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#c8ddb8" stroke-width="13" stroke-dasharray="121.6 263.89" stroke-dashoffset="-123.05" transform="rotate(-90 50 50)"></circle>
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#a8d4cc" stroke-width="13" stroke-dasharray="19.24 263.89" stroke-dashoffset="-244.65" transform="rotate(-90 50 50)"></circle>
+                  </svg>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+                    <span style="font-size:11px;color:var(--a-ink3)">biggest</span>
+                    <span style="font-size:13px;font-weight:700;letter-spacing:-.02em">Transport</span>
+                    <span style="font-size:11.5px;color:var(--a-ink2);font-variant-numeric:tabular-nums">47%</span>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div class="ovrow"><span class="cdot" style="background:var(--c-transport)"></span><span class="nm">Transport</span><span class="am">$70.33</span></div>
+                  <div class="ovrow"><span class="cdot" style="background:var(--c-food)"></span><span class="nm">Food</span><span class="am">$69.51</span></div>
+                  <div class="ovrow"><span class="cdot" style="background:var(--c-recurring)"></span><span class="nm">Recurring</span><span class="am">$11.00</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="cbox">
+              <h2>Month by month, 2026 <span class="tot">$3,455</span></h2>
+              <div style="display:flex;align-items:flex-end;gap:5px;height:100px">
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:20px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:26px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:16px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:22px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:30px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:16px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:24px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:34px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:18px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:24px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:30px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:14px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:20px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:28px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:16px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:28px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:36px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:24px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:16px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:22px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:9px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px"><i style="display:block;height:22px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:34px;background:#c8ddb8"></i><i style="display:block;height:8px;background:#a8d4cc"></i><i style="display:block;height:17px;background:#d4c8a0;border-radius:3px 3px 0 0"></i></div>
+                <div style="flex:1;display:flex;flex-direction:column-reverse;gap:1px;position:relative"><i style="display:block;height:13px;background:#a8c4e0;border-radius:0 0 3px 3px"></i><i style="display:block;height:13px;background:#c8ddb8"></i><i style="display:block;height:2px;background:#a8d4cc;border-radius:3px 3px 0 0"></i><span style="position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:700;color:var(--a-ink2);font-variant-numeric:tabular-nums">151</span></div>
+              </div>
+              <div style="display:flex;gap:5px;margin-top:6px">
+                <span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">J</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">F</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">M</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">A</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">M</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">J</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">J</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink3)">A</span><span style="flex:1;text-align:center;font-size:10px;color:var(--a-ink);font-weight:700">S</span>
+              </div>
+              <div class="legend">
+                <div><i style="background:#a8c4e0"></i>Transport</div><div><i style="background:#c8ddb8"></i>Food</div><div><i style="background:#a8d4cc"></i>Recurring</div><div><i style="background:#d4c8a0"></i>Misc</div>
+              </div>
+              <div class="chips" style="padding-bottom:0;margin:12px -15px 0;padding-left:15px;padding-right:15px">
+                <button class="chip on">All categories</button><button class="chip"><span class="dot" style="background:var(--c-transport)"></span>Transport</button><button class="chip"><span class="dot" style="background:var(--c-food)"></span>Food</button>
+              </div>
+            </div>
+            <div class="cbox">
+              <h2>September totals</h2>
+              <div class="ovrow"><span class="cdot" style="background:var(--c-transport)"></span><span class="nm">Transport</span><span class="am">$70.33</span><span class="pc">47%</span></div>
+              <div class="ovrow"><span class="cdot" style="background:var(--c-food)"></span><span class="nm">Food</span><span class="am">$69.51</span><span class="pc">46%</span></div>
+              <div class="ovrow"><span class="cdot" style="background:var(--c-recurring)"></span><span class="nm">Recurring</span><span class="am">$11.00</span><span class="pc">7%</span></div>
+              <div class="tot-row"><span>Total out</span><span>$150.84</span></div>
+            </div>
+          </div>
+          <div class="fade"></div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>B8</b> Insights</p>
+    </div>
+    <div class="spec">
+      <h3>Insights</h3>
+      <p class="route">app/(tabs)/finance/insights.tsx · pushed from the chart icon</p>
+      <p class="what">The web app's three charts and its Overview box, on their own pushed screen instead of stacked under the ledger. Charts are for a sit-down moment, not the 20-second expense log the tab root is built for. The donut's hole names the biggest category rather than repeating the total that's already in the heading.</p>
+      <dl>
+        <dt>Charts</dt><dd><strong><code>react-native-gifted-charts</code></strong> — <code>PieChart donut</code>, <code>BarChart stackData</code>. It only needs <code>react-native-svg</code>, which is in the Expo SDK, so it runs in <strong>Expo Go</strong> unmodified.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Colours come straight from <code>CAT_COLORS</code>. Don't invent a chart palette — the dots on the ledger and the segments here have to be the same colour or neither is readable.</li>
+          <li>Every segment has a matching legend entry with its own figure; there are no unlabelled slices.</li>
+          <li>The category chips under the bar chart are the ported <code>yearlyBreakdownCat</code> selector. Selecting one narrows the stack to that category.</li>
+          <li>The current month's bar is labelled with its value and its axis letter is inked — the only emphasis in the chart.</li>
+          <li>Respects the ledger's month filter for the donut and totals; the bar chart is always the full year.</li>
+        </ul></dd>
+        <dt>Accessibility</dt><dd>Both charts get an <code>accessibilityLabel</code> naming the top three values, since the marks themselves say nothing to a screen reader.</dd>
+      </dl>
+      <div class="warn"><b>Not</b> <code>victory-native</code> v40+. It renders through <code>@shopify/react-native-skia</code>, which pulls a native module and needs a dev build — that breaks the Expo Go requirement. Chart.js has no React Native renderer at all.</div>
+    </div>
+  </article>
+
+  <article class="block" id="b9">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><a class="iconbtn" href="#b1"><svg><use href="#i-back"></use></svg></a><h1 class="sm">Income</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:14px">
+            <div class="stat wide" style="margin-bottom:16px"><div><div class="l">In this month</div><div class="v pos">$396.73</div></div><span style="font-size:12px;color:var(--a-ink3)">2 payments</span></div>
+            <div class="sgrouplbl">September 2026</div>
+            <div class="list" style="margin-bottom:16px">
+              <a class="row" href="#b11"><span class="mid"><span class="d">Allied</span><span class="s">Fri 11 Sep <span class="badge sal">salary</span></span></span><span class="amt" style="color:var(--a-green)">$271.73</span></a>
+              <div class="swipe"><a class="row" href="#b11"><span class="mid"><span class="d">ING Bank Bonus</span><span class="s">Wed 2 Sep</span></span><span class="amt" style="color:var(--a-green)">$125.00</span></a><span class="del"><svg><use href="#i-trash"></use></svg>Delete</span></div>
+            </div>
+            <div class="sgrouplbl">August 2026</div>
+            <div class="list">
+              <a class="row" href="#b11"><span class="mid"><span class="d">Allied</span><span class="s">Mon 25 Aug <span class="badge sal">salary</span></span></span><span class="amt" style="color:var(--a-green)">$264.10</span></a>
+              <a class="row" href="#b11"><span class="mid"><span class="d">Allied</span><span class="s">Mon 11 Aug <span class="badge sal">salary</span></span></span><span class="amt" style="color:var(--a-green)">$288.42</span></a>
+            </div>
+          </div>
+          <div class="fade"></div>
+          <a class="fab" href="#b10"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>B9</b> Income</p>
+    </div>
+    <div class="spec">
+      <h3>Income</h3>
+      <p class="route">app/(tabs)/finance/income.tsx · pushed</p>
+      <p class="what">Income is short and infrequent, so it gets its own pushed screen rather than a sidebar box competing with the expense ledger. Grouped by month, newest first, with the month's total above it. No category dots — income has no categories, only a salary flag.</p>
+      <dl>
+        <dt>Components</dt><dd><code>SectionList</code> grouped by month. Same <code>Swipeable</code> rows as the ledger, same undo toast.</dd>
+        <dt>Data</dt><dd><code>fetchIncome(userId)</code>. <code>is_salary</code> maps to <code>salary</code> in app state and renders as a green <code>salary</code> badge; non-salary income shows no badge.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Row tap → edit sheet (B11), matching the web app where clicking an income row opens <code>incomeModal</code>.</li>
+          <li>FAB → add income (B10).</li>
+          <li>Amounts are green here. It's the one screen where every figure is positive, so colour is free to mean "income" rather than "good".</li>
+        </ul></dd>
+        <dt>Empty state</dt><dd>“No income logged yet” with <strong>Add income</strong>. Same shape as B2.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b10">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><span class="iconbtn"><svg><use href="#i-back"></use></svg></span><h1 class="sm">Income</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:14px;opacity:.5"><div class="stat wide"><div><div class="l">In this month</div><div class="v pos">$396.73</div></div></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>New income</h2>
+            <div class="input big" style="margin:6px 0 16px">$<span style="flex:1;text-align:right;color:var(--a-green)">271.73</span></div>
+            <div class="field"><label>Where from</label><div class="input">Allied</div></div>
+            <div class="field"><label>Date</label><div class="input" style="justify-content:space-between">Fri 11 Sep<svg width="15" height="15" style="color:var(--a-ink3)"><use href="#i-chev-d"></use></svg></div></div>
+            <div class="field" style="margin-bottom:18px">
+              <div class="input" style="justify-content:space-between;min-height:52px">
+                <span style="font-size:14.5px">This is salary</span>
+                <span style="width:48px;height:29px;border-radius:15px;background:var(--a-moss);position:relative;flex:0 0 48px"><span style="position:absolute;top:2.5px;right:2.5px;width:24px;height:24px;border-radius:50%;background:#fff"></span></span>
+              </div>
+            </div>
+            <a href="#b9" class="btn pri" style="text-decoration:none">Add income</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B10</b> Add income</p>
+    </div>
+    <div class="spec">
+      <h3>Add income</h3>
+      <p class="route">presented over app/(tabs)/finance/income.tsx</p>
+      <p class="what">Same shape as add expense so the two feel like one gesture, with the amount tinted green and a real switch for the salary flag instead of the web app's bare checkbox.</p>
+      <dl>
+        <dt>Components</dt><dd>Bottom sheet. <code>Switch</code> from <code>react-native</code> — <code>trackColor</code> set from <code>--moss</code>. Source is a plain <code>TextInput</code>.</dd>
+        <dt>Data</dt><dd><code>insertIncome(userId, { date, source, amount, salary })</code>; <code>salary</code> lands in <code>is_salary</code>. Unchanged from web.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Source suggests recently used sources as chips under the field once there are three or more distinct ones — most income repeats.</li>
+          <li>Submit disabled until amount &gt; 0 and source is non-empty.</li>
+          <li>Optimistic insert, rollback on failure, same as B4.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“Where from”, not “Source”. “This is salary”, not a bare “Salary” label with a box.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b11">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><span class="iconbtn"><svg><use href="#i-back"></use></svg></span><h1 class="sm">Income</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:14px;opacity:.5"><div class="stat wide"><div><div class="l">In this month</div><div class="v pos">$396.73</div></div></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>Allied</h2>
+            <p class="sub">Added Fri 11 Sep</p>
+            <div class="input big" style="margin-bottom:16px">$<span style="flex:1;text-align:right;color:var(--a-green)">271.73</span></div>
+            <div class="field"><label>Where from</label><div class="input">Allied</div></div>
+            <div class="field"><label>Date</label><div class="input" style="justify-content:space-between">Fri 11 Sep<svg width="15" height="15" style="color:var(--a-ink3)"><use href="#i-chev-d"></use></svg></div></div>
+            <div class="field" style="margin-bottom:16px">
+              <div class="input" style="justify-content:space-between;min-height:52px"><span style="font-size:14.5px">This is salary</span><span style="width:48px;height:29px;border-radius:15px;background:var(--a-moss);position:relative;flex:0 0 48px"><span style="position:absolute;top:2.5px;right:2.5px;width:24px;height:24px;border-radius:50%;background:#fff"></span></span></div>
+            </div>
+            <div class="btnrow"><div class="btn dan" style="flex:0 0 96px">Delete</div><a href="#b9" class="btn pri" style="text-decoration:none">Save changes</a></div>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B11</b> Edit income</p>
+    </div>
+    <div class="spec">
+      <h3>Edit income</h3>
+      <p class="route">presented over app/(tabs)/finance/income.tsx</p>
+      <p class="what">The ported <code>incomeModal</code>. Unlike the expense detail sheet this one <em>does</em> have a Save button, because all four fields are editable at once and a mistyped amount shouldn't commit on every keystroke.</p>
+      <dl>
+        <dt>Data</dt><dd><code>updateIncome(id, changes)</code> with the existing selective mapping (<code>salary → is_salary</code>). Only changed keys are sent.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Header shows the source so the sheet identifies what's being edited.</li>
+          <li><strong>Delete</strong> confirms via <code>Alert</code>, then closes the sheet and removes the row with an undo toast.</li>
+          <li>Dismissing with unsaved edits asks “Discard changes?” — this is the one sheet where a swipe-down can lose work.</li>
+          <li><strong>Save changes</strong>, not <strong>Save</strong> — it says what it does.</li>
+        </ul></dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b12">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><a class="iconbtn" href="#e1"><svg><use href="#i-back"></use></svg></a><h1 class="sm">Converter</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:20px">
+            <div class="cbox" style="padding:18px 16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11.5px;color:var(--a-ink3)">From</span><span style="font-size:13px;font-weight:700;background:var(--a-surf2);border:1px solid var(--a-border);border-radius:9px;padding:4px 10px">AUD</span></div>
+              <div style="font-size:34px;font-weight:600;letter-spacing:-.035em;font-variant-numeric:tabular-nums;text-align:right">120.00</div>
+              <div style="display:flex;align-items:center;gap:10px;margin:16px 0"><span style="flex:1;height:1px;background:var(--a-border)"></span><span style="width:34px;height:34px;border-radius:12px;background:var(--a-surf2);border:1px solid var(--a-border);display:grid;place-items:center;color:var(--a-ink2)"><svg width="17" height="17"><use href="#i-swap"></use></svg></span><span style="flex:1;height:1px;background:var(--a-border)"></span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11.5px;color:var(--a-ink3)">To</span><span style="font-size:13px;font-weight:700;background:var(--a-moss);color:#fff;border-radius:9px;padding:4px 10px">IDR</span></div>
+              <div style="font-size:34px;font-weight:600;letter-spacing:-.035em;font-variant-numeric:tabular-nums;text-align:right;color:var(--a-moss)">1,224,000</div>
+              <p style="font-size:11px;color:var(--a-ink3);margin-top:10px;text-align:right">1 AUD = 10,200 IDR · stored rate, not live</p>
+            </div>
+            <div class="sgrouplbl">Convert to</div>
+            <div class="chips" style="flex-wrap:wrap;overflow:visible;padding-bottom:0">
+              <button class="chip">USD</button><button class="chip">EUR</button><button class="chip">GBP</button><button class="chip">JPY</button><button class="chip on">IDR</button><button class="chip">KRW</button><button class="chip">SGD</button>
+            </div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>B12</b> Converter</p>
+    </div>
+    <div class="spec">
+      <h3>Converter</h3>
+      <p class="route">app/converter.tsx · pushed from Settings</p>
+      <p class="what">The web sidebar's four cramped inputs become one screen with two big figures and the currency as a tappable pill. It's a travel tool, not a finance feature, so it lives in Settings rather than taking space in the Finance tab. Result updates as digits are typed — the web app's <strong>Go</strong> button disappears.</p>
+      <dl>
+        <dt>Data</dt><dd>Ported <code>RATES</code> from <code>src/constants/index.js</code>, AUD-based, unchanged. Conversion is <code>amount / RATES[from] * RATES[to]</code>.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><code>decimal-pad</code> keyboard, focused on mount, live result.</li>
+          <li>The swap button exchanges from and to, keeping the amount.</li>
+          <li>Both currency pills open a picker; the recent-target chips below are quicker for the two or three currencies actually used.</li>
+          <li>Results use <code>Intl.NumberFormat</code> so IDR reads <code>1,224,000</code> and not <code>1224000</code>.</li>
+        </ul></dd>
+        <dt>Honesty</dt><dd>“stored rate, not live” sits under the result. The web app says “Approximate rates only” in the corner; on a phone someone will use this at a checkout, so the caveat goes next to the number they're about to trust.</dd>
+      </dl>
+    </div>
+  </article>
+</section>
+
+<section class="grp" id="grp-c">
+  <div class="grp-hd">
+    <h2>Habits</h2>
+    <p>The web app's 7×N checkbox grid doesn't survive a 390pt screen — seven 36pt cells plus a name plus a progress column leaves nothing legible and every target under Apple's 44pt floor. So the phone shows <strong>one day at a time</strong>, with the week reachable from a strip above it.</p>
+  </div>
+
+  <article class="block" id="c1">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Habits</h1><a class="iconbtn" href="#c6"><svg><use href="#i-archive"></use></svg></a><a class="iconbtn" href="#e1"><svg><use href="#i-gear"></use></svg></a></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="weekstrip">
+              <div class="day full"><div class="dw">M</div><div class="dn">7</div><div class="pip"></div></div>
+              <div class="day part"><div class="dw">T</div><div class="dn">8</div><div class="pip"></div></div>
+              <div class="day full"><div class="dw">W</div><div class="dn">9</div><div class="pip"></div></div>
+              <div class="day part"><div class="dw">T</div><div class="dn">10</div><div class="pip"></div></div>
+              <div class="day full"><div class="dw">F</div><div class="dn">11</div><div class="pip"></div></div>
+              <div class="day on"><div class="dw">S</div><div class="dn">12</div><div class="pip"></div></div>
+              <div class="day fut"><div class="dw">S</div><div class="dn">13</div><div class="pip"></div></div>
+            </div>
+            <div class="today">
+              <div class="hd">
+                <div class="ring">
+                  <svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="19" fill="none" stroke="#eceae4" stroke-width="5"></circle><circle cx="23" cy="23" r="19" fill="none" stroke="#3b6b3b" stroke-width="5" stroke-linecap="round" stroke-dasharray="59.7 119.4"></circle></svg>
+                  <span class="num">3/6</span>
+                </div>
+                <div class="tx"><h2>Today</h2><p>Saturday 12 September</p></div>
+              </div>
+              <div class="habit done"><span class="check auto"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Reach out</b><span>2 of 2 this week — done</span></span></div>
+              <div class="habit"><span class="check"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Meet people</b><span>1 of 2 this week</span></span><span class="kbd">1 to go</span></div>
+              <div class="habit"><span class="check"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>LeetCode</b><span>2 of 3 this week</span></span><span class="kbd">1 to go</span></div>
+              <div class="habit done"><span class="check auto"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Gym</b><span>3 of 3 this week — done</span></span></div>
+              <div class="habit done"><span class="check on"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Post content</b><span>every day · 5 day streak</span></span></div>
+              <div class="habit"><span class="check"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Physical exercise</b><span>every day · 4 of 7 this week</span></span></div>
+            </div>
+            <div class="prog">
+              <h2>This week</h2>
+              <div class="pitem"><div class="pl"><b>Reach out</b><span>2/2</span></div><div class="bar"><i style="width:100%;background:var(--a-moss)"></i></div></div>
+              <div class="pitem"><div class="pl"><b>Meet people</b><span>1/2</span></div><div class="bar"><i style="width:50%;background:var(--a-amber)"></i></div></div>
+              <div class="pitem"><div class="pl"><b>LeetCode</b><span>2/3</span></div><div class="bar"><i style="width:66%;background:var(--a-amber)"></i></div></div>
+              <div class="pitem"><div class="pl"><b>Gym</b><span>3/3</span></div><div class="bar"><i style="width:100%;background:var(--a-moss)"></i></div></div>
+              <div class="pitem"><div class="pl"><b>Post content</b><span>5/7</span></div><div class="bar"><i style="width:71%;background:var(--a-amber)"></i></div></div>
+              <div class="pitem"><div class="pl"><b>Physical exercise</b><span>4/7</span></div><div class="bar"><i style="width:57%;background:var(--a-amber)"></i></div></div>
+            </div>
+          </div>
+          <div class="fade"></div>
+          <a class="fab" href="#c4"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a class="on" href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>C1</b> Today · default screen</p>
+    </div>
+    <div class="spec">
+      <h3>Today</h3>
+      <p class="route">app/(tabs)/habits/index.tsx</p>
+      <p class="what">Six habits, six 30pt checkboxes in a 56pt row — the thing this tab is for takes one thumb and no aiming. The web app's two section headers (<em>Weekly Goals</em> / <em>Daily Tracking</em>) are gone; each habit's own subtitle says which it is and where it stands, which is more useful per row and costs no vertical space.</p>
+      <dl>
+        <dt>Components</dt><dd><code>ScrollView</code> → week strip (7 <code>Pressable</code>s) → today card → week card. No <code>FlatList</code> needed; a person has a handful of habits, not hundreds.</dd>
+        <dt>Data</dt><dd><code>fetchHabits(userId)</code> + <code>habit_checks</code>. Keep the existing <code>weekStart</code> + <code>dayIndex</code> storage and the <code>dateFromWeekStartAndDay</code> / <code>weekStartAndDayFromDate</code> helpers from <code>db.js</code> verbatim — weeks start Monday, <code>(getDay() + 6) % 7</code>.</dd>
+        <dt>Three check states</dt><dd><ul>
+          <li><strong>Empty</strong> — 1.8pt border, no fill.</li>
+          <li><strong>Checked</strong> — moss fill, white tick. The person ticked it on this day.</li>
+          <li><strong>Goal met</strong> — pale moss fill, moss tick, <code>--moss-light</code> border. The weekly goal is already reached so the day needs nothing. This is the web app's <code>auto-checked</code> state and it must stay visually distinct from a real tick, or "done" and "didn't need doing" become the same thing.</li>
+        </ul></dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Tap a checkbox → optimistic toggle + <code>Haptics.impactAsync(Light)</code> + a 120ms scale spring on the box. This is the app's one scripted animation; it confirms a tap that has no other feedback.</li>
+          <li>Tap a habit's <em>name</em> → actions sheet (C5). Long-press does the same, for reachability.</li>
+          <li>Week strip pips: filled moss = every habit done that day, amber = some, hollow = none. Future days are 40% opacity and not tappable.</li>
+          <li><strong>“1 to go”</strong> on the right of a weekly habit is the remaining count. Habits that are done show no count — finished rows go quiet.</li>
+          <li>Rows sort unfinished first within their group, so the work is at the top.</li>
+        </ul></dd>
+        <dt>Progress colours</dt><dd>Moss at 100%, amber below. Never red — a half-finished week is not an error.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="c2">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Habits</h1><span class="iconbtn"><svg><use href="#i-archive"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="weekstrip">
+              <div class="day full"><div class="dw">M</div><div class="dn">7</div><div class="pip"></div></div>
+              <div class="day part"><div class="dw">T</div><div class="dn">8</div><div class="pip"></div></div>
+              <div class="day full"><div class="dw">W</div><div class="dn">9</div><div class="pip"></div></div>
+              <div class="day part"><div class="dw">T</div><div class="dn">10</div><div class="pip"></div></div>
+              <div class="day full"><div class="dw">F</div><div class="dn">11</div><div class="pip"></div></div>
+              <div class="day on full"><div class="dw">S</div><div class="dn">12</div><div class="pip"></div></div>
+              <div class="day fut"><div class="dw">S</div><div class="dn">13</div><div class="pip"></div></div>
+            </div>
+            <div class="today">
+              <div class="hd">
+                <div class="ring">
+                  <svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="19" fill="none" stroke="#eceae4" stroke-width="5"></circle><circle cx="23" cy="23" r="19" fill="none" stroke="#3b6b3b" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4 119.4"></circle></svg>
+                  <span class="num" style="color:var(--a-moss)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
+                </div>
+                <div class="tx"><h2>All six done</h2><p>Saturday 12 September</p></div>
+              </div>
+              <div class="habit done"><span class="check auto"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Reach out</b><span>2 of 2 this week — done</span></span></div>
+              <div class="habit done"><span class="check on"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Meet people</b><span>2 of 2 this week — done</span></span></div>
+              <div class="habit done"><span class="check on"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>LeetCode</b><span>3 of 3 this week — done</span></span></div>
+              <div class="habit done"><span class="check auto"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Gym</b><span>3 of 3 this week — done</span></span></div>
+              <div class="habit done"><span class="check on"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Post content</b><span>every day · 6 day streak</span></span></div>
+              <div class="habit done"><span class="check on"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Physical exercise</b><span>every day · 5 of 7 this week</span></span></div>
+            </div>
+            <div class="prog">
+              <h2>This week</h2>
+              <div class="pitem"><div class="pl"><b>Reach out</b><span>2/2</span></div><div class="bar"><i style="width:100%;background:var(--a-moss)"></i></div></div>
+              <div class="pitem"><div class="pl"><b>Meet people</b><span>2/2</span></div><div class="bar"><i style="width:100%;background:var(--a-moss)"></i></div></div>
+              <div class="pitem"><div class="pl"><b>LeetCode</b><span>3/3</span></div><div class="bar"><i style="width:100%;background:var(--a-moss)"></i></div></div>
+            </div>
+          </div>
+          <div class="fade"></div>
+          <span class="fab"><svg><use href="#i-plus"></use></svg></span>
+        </div>
+        <div class="tabbar">
+          <a href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a class="on" href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>C2</b> Day complete</p>
+    </div>
+    <div class="spec">
+      <h3>Day complete</h3>
+      <p class="route">app/(tabs)/habits/index.tsx · all of today's habits satisfied</p>
+      <p class="what">The ring fills and swaps its fraction for a tick; the heading counts what was done. That's the entire reward — no confetti, no modal, no streak celebration. The app is used every day and a celebration that fires every day stops being one.</p>
+      <dl>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Heading becomes <strong>All six done</strong> — the real count, not “Great job!”.</li>
+          <li>Ring animates the last segment closed over ~250ms, once, then holds. Skipped under <code>prefers-reduced-motion</code> / <code>AccessibilityInfo.isReduceMotionEnabled</code>.</li>
+          <li><code>Haptics.notificationAsync(Success)</code> on the tap that completes the day. Only that tap.</li>
+          <li>Rows stay tappable — unticking a mistake must remain possible.</li>
+        </ul></dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="c3">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Habits</h1><span class="iconbtn"><svg><use href="#i-archive"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="weekstrip">
+              <div class="day full"><div class="dw">M</div><div class="dn">7</div><div class="pip"></div></div>
+              <div class="day on part"><div class="dw">T</div><div class="dn">8</div><div class="pip"></div></div>
+              <div class="day full"><div class="dw">W</div><div class="dn">9</div><div class="pip"></div></div>
+              <div class="day part"><div class="dw">T</div><div class="dn">10</div><div class="pip"></div></div>
+              <div class="day full"><div class="dw">F</div><div class="dn">11</div><div class="pip"></div></div>
+              <div class="day part"><div class="dw">S</div><div class="dn">12</div><div class="pip"></div></div>
+              <div class="day fut"><div class="dw">S</div><div class="dn">13</div><div class="pip"></div></div>
+            </div>
+            <div class="today">
+              <div class="hd">
+                <div class="ring">
+                  <svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="19" fill="none" stroke="#eceae4" stroke-width="5"></circle><circle cx="23" cy="23" r="19" fill="none" stroke="#b5720a" stroke-width="5" stroke-linecap="round" stroke-dasharray="39.8 119.4"></circle></svg>
+                  <span class="num">2/6</span>
+                </div>
+                <div class="tx"><h2>Tuesday</h2><p>8 September · 4 days ago</p></div>
+                <a href="#c1" style="font-size:12px;font-weight:600;color:var(--a-moss);text-decoration:none;flex:0 0 auto">Today</a>
+              </div>
+              <div class="habit done"><span class="check on"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Reach out</b><span>counted toward this week</span></span></div>
+              <div class="habit"><span class="check"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Meet people</b><span>1 of 2 this week</span></span></div>
+              <div class="habit"><span class="check"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>LeetCode</b><span>2 of 3 this week</span></span></div>
+              <div class="habit done"><span class="check on"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Gym</b><span>counted toward this week</span></span></div>
+              <div class="habit"><span class="check"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Post content</b><span>every day · missed</span></span></div>
+              <div class="habit"><span class="check"><svg><use href="#i-check"></use></svg></span><span class="nm"><b>Physical exercise</b><span>every day · missed</span></span></div>
+            </div>
+          </div>
+          <div class="fade"></div>
+          <span class="fab"><svg><use href="#i-plus"></use></svg></span>
+        </div>
+        <div class="tabbar">
+          <a href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a class="on" href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>C3</b> Back-fill a past day</p>
+    </div>
+    <div class="spec">
+      <h3>Back-fill a past day</h3>
+      <p class="route">app/(tabs)/habits/index.tsx · <code>selectedDay !== today</code></p>
+      <p class="what">The reason the week strip exists. Weekly goals are the whole model in this app, so a habit done on Tuesday and ticked on Saturday still has to count for Tuesday. The card retitles to the day it's editing, the ring turns amber so the screen can't be mistaken for today, and a <strong>Today</strong> link returns.</p>
+      <dl>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Tapping a strip day sets <code>selectedDay</code>; nothing navigates. Header shows the weekday name, the date, and how long ago.</li>
+          <li>Amber ring + amber pips are the only signal needed — no banner.</li>
+          <li>Future days are inert. You can't tick tomorrow.</li>
+          <li>Swipe left/right across the card moves a day, same as tapping the strip.</li>
+          <li>Previous weeks: swipe the <em>strip</em> itself, which is the ported <code>habitWeekOffset</code>. Cap it at a sensible past window — nobody back-fills March.</li>
+          <li>Writes go to <code>habit_checks</code> at <code>(weekStart, dayIndex)</code> for the selected day, not today. Getting this wrong silently corrupts weekly totals, so it's worth a test.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>Daily habits on a past day read <strong>missed</strong>, not “incomplete”. Weekly ones that were ticked read “counted toward this week”, which explains why the weekly total moved.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="c4">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Habits</h1><span class="iconbtn"><svg><use href="#i-archive"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="opacity:.5"><div class="weekstrip"><div class="day full"><div class="dw">M</div><div class="dn">7</div><div class="pip"></div></div><div class="day part"><div class="dw">T</div><div class="dn">8</div><div class="pip"></div></div><div class="day full"><div class="dw">W</div><div class="dn">9</div><div class="pip"></div></div><div class="day part"><div class="dw">T</div><div class="dn">10</div><div class="pip"></div></div><div class="day full"><div class="dw">F</div><div class="dn">11</div><div class="pip"></div></div><div class="day on"><div class="dw">S</div><div class="dn">12</div><div class="pip"></div></div><div class="day fut"><div class="dw">S</div><div class="dn">13</div><div class="pip"></div></div></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>New habit</h2>
+            <div class="field" style="margin-top:12px"><label>What are you tracking</label><div class="input focus">Read 30 min</div></div>
+            <div class="field"><label>How often</label><div class="seg"><button class="on">A few times a week</button><button>Every day</button></div></div>
+            <div class="field" style="margin-bottom:20px">
+              <label>Times per week</label>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span class="iconbtn solid" style="width:44px;height:44px;flex:0 0 44px;border-radius:14px;font-size:20px;color:var(--a-ink2)">–</span>
+                <div style="flex:1;text-align:center;font-size:26px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums">3</div>
+                <span class="iconbtn solid" style="width:44px;height:44px;flex:0 0 44px;border-radius:14px;font-size:20px;color:var(--a-ink2)">+</span>
+              </div>
+            </div>
+            <a href="#c1" class="btn pri" style="text-decoration:none">Add habit</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>C4</b> Add habit</p>
+    </div>
+    <div class="spec">
+      <h3>Add habit</h3>
+      <p class="route">presented over app/(tabs)/habits/index.tsx</p>
+      <p class="what">Three decisions. The goal stepper is a stepper rather than a number field because the answer is always between 1 and 6 and nobody should open a keyboard for it.</p>
+      <dl>
+        <dt>Mapping</dt><dd><strong>A few times a week</strong> → <code>type: 'weekly'</code>, <code>is_daily: false</code>, <code>goal</code> from the stepper. <strong>Every day</strong> → <code>type: 'daily'</code>, <code>is_daily: true</code>, <code>goal: 7</code>, and the stepper hides.</dd>
+        <dt>Components</dt><dd>Bottom sheet, <code>autoFocus</code> on the name. Stepper buttons are 44×44 and clamp to 1–7. <code>insertHabit</code> assigns <code>sort_order</code> at the end of its group.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Submit disabled while the name is empty; trim before saving.</li>
+          <li>New habit appears immediately in today's card, unticked.</li>
+          <li>Names are shown verbatim — the web app's convention of baking the count into the name (“Gym x3”) is no longer needed now the goal renders in the subtitle, but existing names are not rewritten.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“What are you tracking” instead of “Name”. “A few times a week” / “Every day” instead of the web app's <em>Weekly goal</em> / <em>Daily track</em> — the person is describing their life, not choosing a data type.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="c5">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Habits</h1><span class="iconbtn"><svg><use href="#i-archive"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="opacity:.5"><div class="weekstrip"><div class="day full"><div class="dw">M</div><div class="dn">7</div><div class="pip"></div></div><div class="day part"><div class="dw">T</div><div class="dn">8</div><div class="pip"></div></div><div class="day full"><div class="dw">W</div><div class="dn">9</div><div class="pip"></div></div><div class="day part"><div class="dw">T</div><div class="dn">10</div><div class="pip"></div></div><div class="day full"><div class="dw">F</div><div class="dn">11</div><div class="pip"></div></div><div class="day on"><div class="dw">S</div><div class="dn">12</div><div class="pip"></div></div><div class="day fut"><div class="dw">S</div><div class="dn">13</div><div class="pip"></div></div></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>LeetCode</h2>
+            <p class="sub">3 times a week · 2 of 3 done</p>
+            <div class="sgroup">
+              <div class="srow"><svg class="lead"><use href="#i-pencil"></use></svg><span class="fl">Rename</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              <div class="srow"><svg class="lead"><use href="#i-check-c"></use></svg><span class="fl">Change goal</span><span class="val">3 a week</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              <div class="srow"><svg class="lead"><use href="#i-archive"></use></svg><span class="fl">Archive</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              <div class="srow dan"><svg class="lead" style="color:var(--a-red)"><use href="#i-trash"></use></svg><span class="fl">Delete habit</span></div>
+            </div>
+            <a href="#c1" class="btn lnk" style="margin-top:12px;text-decoration:none">Cancel</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>C5</b> Habit actions</p>
+    </div>
+    <div class="spec">
+      <h3>Habit actions</h3>
+      <p class="route">presented over app/(tabs)/habits/index.tsx</p>
+      <p class="what">This replaces <code>contentEditable</code> renaming and the <code>×</code> button, both of which were fine with a mouse and are hostile with a thumb. Rename opens a <code>TextInput</code> in the same sheet; nothing stacks.</p>
+      <dl>
+        <dt>Mapping</dt><dd>Rename → <code>updateHabit(id, { name })</code> · Change goal → <code>{ goal }</code> via the same stepper as C4 · Archive → <code>{ archived: true }</code> · Delete → <code>deleteHabit(id)</code>, which must also clear that habit's <code>habit_checks</code> rows.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><strong>Archive</strong> is offered above Delete and is the one people actually want — it keeps the history and clears the list. Same <code>archived</code> flag the web app added.</li>
+          <li><strong>Delete habit</strong> confirms via <code>Alert</code> and says what's lost: “This also deletes its check history. Archive keeps it.” No undo toast — this one is genuinely irreversible.</li>
+          <li>Archive shows an undo toast; nothing is lost, so undo is cheap.</li>
+        </ul></dd>
+        <dt>Header</dt><dd>Name plus current standing, so the sheet identifies its subject without a separate label.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="c6">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><a class="iconbtn" href="#c1"><svg><use href="#i-back"></use></svg></a><h1 class="sm">Archived habits</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:16px">
+            <p style="font-size:12.5px;color:var(--a-ink3);margin-bottom:14px;padding:0 2px">Archived habits keep their history and stop showing up in your week. Restore one any time.</p>
+            <div class="list">
+              <div class="row" style="cursor:default"><span class="mid"><span class="d" style="color:var(--a-ink2)">Journal nightly</span><span class="s">every day · archived 14 Aug</span></span><span style="font-size:12.5px;font-weight:600;color:var(--a-moss)">Restore</span></div>
+              <div class="row" style="cursor:default"><span class="mid"><span class="d" style="color:var(--a-ink2)">Cold shower</span><span class="s">4 a week · archived 2 Aug</span></span><span style="font-size:12.5px;font-weight:600;color:var(--a-moss)">Restore</span></div>
+              <div class="swipe"><div class="row"><span class="mid"><span class="d" style="color:var(--a-ink2)">Duolingo</span><span class="s">every day · archived 19 Jul</span></span><span style="font-size:12.5px;font-weight:600;color:var(--a-moss)">Restore</span></div><span class="del"><svg><use href="#i-trash"></use></svg>Delete</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>C6</b> Archived habits</p>
+    </div>
+    <div class="spec">
+      <h3>Archived habits</h3>
+      <p class="route">app/(tabs)/habits/archived.tsx · pushed from the archive icon</p>
+      <p class="what">The web app hides archived habits behind a collapsible row inside the tracker. On the phone they get a pushed screen, so today's list stays exactly as long as today's habits.</p>
+      <dl>
+        <dt>Components</dt><dd>Plain list. <strong>Restore</strong> is a 44pt text button inside the row — it's the primary action here, so it isn't hidden behind a swipe. Permanent delete is the swipe.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Restore → <code>setArchived(id, false)</code>; the habit reappears in today's card with its history intact.</li>
+          <li>The archive icon in the Habits header is hidden entirely when nothing is archived — an empty screen nobody can reach is better than a dead-end button.</li>
+          <li>Archived-date subtitles need a column the schema may not have; if <code>habits</code> has no <code>archived_at</code>, drop the date rather than faking one.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>The explanatory line at the top is worth its two lines — “archived” is the app's word, not a universal one.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="c7">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Habits</h1><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="empty" style="padding-top:110px">
+              <div class="ic"><svg><use href="#i-check-c"></use></svg></div>
+              <h3>No habits yet</h3>
+              <p style="max-width:27ch">Add something you want to do a few times a week, or every day. You’ll tick it off here.</p>
+              <a href="#c4" class="btn pri" style="max-width:180px;margin:0 auto;min-height:46px;font-size:14.5px;text-decoration:none">Add your first habit</a>
+            </div>
+          </div>
+          <a class="fab" href="#c4"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a class="on" href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>C7</b> No habits yet</p>
+    </div>
+    <div class="spec">
+      <h3>No habits yet</h3>
+      <p class="route">app/(tabs)/habits/index.tsx · <code>habits.length === 0</code></p>
+      <p class="what">What a signed-in account looks like on day one. The copy teaches the only concept the tab has — two kinds of habit — instead of describing the screen.</p>
+      <dl>
+        <dt>Behaviour</dt><dd>Week strip and progress card are both hidden; a strip of seven empty days above an empty list looks broken. The archive icon is hidden too.</dd>
+        <dt>Copy</dt><dd>“Add your first habit” is the same action as the FAB. Empty screens get a labelled button because a lone <code>+</code> in the corner is not an instruction.</dd>
+      </dl>
+    </div>
+  </article>
+</section>
+
+<section class="grp" id="grp-d">
+  <div class="grp-hd">
+    <h2>Content</h2>
+    <p>A pipeline of reel ideas moving Idea → Scripted → Filmed → Edited → Posted. Each idea becomes a card carrying its pillar colour, its stage, and its note — the four table columns, stacked.</p>
+  </div>
+
+  <article class="block" id="d1">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Content</h1><a class="iconbtn" href="#d6"><svg><use href="#i-grip"></use></svg></a><a class="iconbtn" href="#d7"><svg><use href="#i-gear"></use></svg></a></div>
+        <div class="body">
+          <div class="scroll np" style="padding:0 16px">
+            <div class="chips">
+              <button class="chip on">All 13</button>
+              <button class="chip"><span class="dot" style="background:#6b4fa0"></span>DITL</button>
+              <button class="chip"><span class="dot" style="background:#c0502a"></span>Thought/Feeling</button>
+              <button class="chip"><span class="dot" style="background:#1e7a6e"></span>Vlog</button>
+            </div>
+            <a class="idea" href="#d4" style="text-decoration:none;color:inherit">
+              <span class="rail" style="background:#1e7a6e"></span>
+              <span class="mid"><span class="ti">KASA intro</span><span class="mt"><span class="pillar" style="background:#e7f5f3;color:#1e7a6e">Minimalistic Vlog</span><span class="status idea">Idea</span></span></span>
+            </a>
+            <a class="idea" href="#d4" style="text-decoration:none;color:inherit">
+              <span class="rail" style="background:#b04070"></span>
+              <span class="mid"><span class="ti">life comes in waves</span><span class="mt"><span class="pillar" style="background:#f9eef4;color:#b04070">Story Telling</span><span class="status idea">Idea</span></span></span>
+            </a>
+            <a class="idea" href="#d4" style="text-decoration:none;color:inherit">
+              <span class="rail" style="background:#6b4fa0"></span>
+              <span class="mid"><span class="ti">DITL3</span><span class="mt"><span class="pillar" style="background:#f3eefb;color:#6b4fa0">DITL</span><span class="status edited">Edited</span></span><span class="nt">dk if still wanna post</span></span>
+            </a>
+            <a class="idea" href="#d4" style="text-decoration:none;color:inherit">
+              <span class="rail" style="background:#b04070"></span>
+              <span class="mid"><span class="ti">money while young</span><span class="mt"><span class="pillar" style="background:#f9eef4;color:#b04070">Story Telling</span><span class="status scripted">Scripted</span></span></span>
+            </a>
+            <a class="idea" href="#d4" style="text-decoration:none;color:inherit">
+              <span class="rail" style="background:#1e7a6e"></span>
+              <span class="mid"><span class="ti">explore more things</span><span class="mt"><span class="pillar" style="background:#e7f5f3;color:#1e7a6e">Minimalistic Vlog</span><span class="status idea">Idea</span></span></span>
+            </a>
+            <div class="collapsed"><svg><use href="#i-chev-r"></use></svg>Posted<span style="margin-left:auto;color:var(--a-ink3);font-weight:600">7</span></div>
+          </div>
+          <div class="fade"></div>
+          <a class="fab" href="#d3"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a class="on" href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>D1</b> Pipeline · default screen</p>
+    </div>
+    <div class="spec">
+      <h3>Pipeline</h3>
+      <p class="route">app/(tabs)/content/index.tsx</p>
+      <p class="what">Each row of the web table becomes a card: title first at 15pt semibold, pillar and stage as chips beneath, and the note in italic only when there is one. A 3pt colour rail down the left edge repeats the pillar colour, so scanning for "all my vlog ideas" works without reading a word. Posted items stay collapsed behind a count, same as the web default.</p>
+      <dl>
+        <dt>Components</dt><dd><code>FlatList</code> of <code>Pressable</code> cards. Filter chips are a horizontal <code>ScrollView</code> with <code>showsHorizontalScrollIndicator={false}</code> and 16pt end padding so the last chip isn't flush to the bezel.</dd>
+        <dt>Data</dt><dd><code>fetchContent</code> + <code>fetchPillars</code>. Pillar colours come from <code>PILLAR_COLORS[colorIdx]</code> — <code>bg</code> for the chip, <code>text</code> for the label and the rail. Ported unchanged.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><strong>Card tap</strong> → idea detail sheet (D4). Every field is edited there; nothing is editable on the card itself.</li>
+          <li><strong>Swipe left</strong> → Delete, with undo, same as Finance.</li>
+          <li><strong>Filter chips</strong> are single-select and mirror <code>contentFilter</code>. The first chip counts everything; pillar chips are truncated to keep them one-line.</li>
+          <li><strong>Posted</strong> expands in place. It's collapsed on load because a posted reel is finished work, not a task.</li>
+          <li>The grip icon in the header enters reorder mode (D6).</li>
+        </ul></dd>
+        <dt>Status colours</dt><dd>Idea grey · Scripted blue · Filmed purple · Edited amber · Posted green. Progress reads as warming colour, and only Posted is green, so "done" is unambiguous.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d2">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Content</h1><span class="iconbtn"><svg><use href="#i-grip"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll np" style="padding:0 16px">
+            <div class="chips">
+              <button class="chip">All 13</button>
+              <button class="chip"><span class="dot" style="background:#6b4fa0"></span>DITL</button>
+              <button class="chip on"><span class="dot" style="background:#b04070"></span>Story Telling</button>
+              <button class="chip"><span class="dot" style="background:#1e7a6e"></span>Vlog</button>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding:0 2px">
+              <span style="font-size:12.5px;color:var(--a-ink2)">3 ideas in <b style="color:#b04070">Story Telling</b></span>
+              <span style="font-size:12.5px;color:var(--a-moss);font-weight:600">Clear</span>
+            </div>
+            <div class="idea">
+              <span class="rail" style="background:#b04070"></span>
+              <span class="mid"><span class="ti">life comes in waves</span><span class="mt"><span class="status idea">Idea</span></span></span>
+            </div>
+            <div class="idea">
+              <span class="rail" style="background:#b04070"></span>
+              <span class="mid"><span class="ti">money while young</span><span class="mt"><span class="status scripted">Scripted</span></span></span>
+            </div>
+            <div class="idea">
+              <span class="rail" style="background:#b04070"></span>
+              <span class="mid"><span class="ti">no 20k</span><span class="mt"><span class="status posted">Posted</span></span></span>
+            </div>
+          </div>
+          <a class="fab" href="#d3"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a class="on" href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>D2</b> Filtered by pillar</p>
+    </div>
+    <div class="spec">
+      <h3>Filtered by pillar</h3>
+      <p class="route">app/(tabs)/content/index.tsx · <code>contentFilter = pillarId</code></p>
+      <p class="what">Filtering drops the pillar chip from every card — repeating "Story Telling" five times under a selected Story Telling filter is noise. The rail keeps the colour. A result line states the count and the pillar and offers the way out.</p>
+      <dl>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Posted items are shown inline when a pillar filter is on rather than collapsed, since the filtered list is already short and seeing what's been posted in a pillar is the point of filtering it.</li>
+          <li><strong>Clear</strong> returns to All. The selected chip also toggles off.</li>
+          <li>New ideas added while a filter is active inherit that pillar — the web app's <code>getDefaultPillarId</code> behaviour, and it's what someone batching ideas expects.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“3 ideas in Story Telling” names the filter in the same words as the chip that set it.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d3">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Content</h1><span class="iconbtn"><svg><use href="#i-grip"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll np" style="padding:0 16px;opacity:.5"><div class="chips"><button class="chip on">All 13</button></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>New idea</h2>
+            <div class="field" style="margin-top:12px"><label>The idea</label><div class="input focus" style="min-height:62px;align-items:flex-start;padding-top:12px;line-height:1.4">why I stopped chasing 20k followers</div></div>
+            <div class="field">
+              <label>Pillar</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <span class="pillar" style="background:#f3eefb;color:#6b4fa0;padding:7px 12px;font-size:12.5px">DITL</span>
+                <span class="pillar" style="background:#faeee9;color:#c0502a;padding:7px 12px;font-size:12.5px">Thought/Feeling</span>
+                <span class="pillar" style="background:#e7f5f3;color:#1e7a6e;padding:7px 12px;font-size:12.5px">Minimalistic Vlog</span>
+                <span class="pillar" style="background:#b04070;color:#fff;padding:7px 12px;font-size:12.5px">Story Telling</span>
+                <span class="pillar" style="background:#edf3f8;color:#2c5f8a;padding:7px 12px;font-size:12.5px">Talking Head</span>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:20px"><label>Notes <span style="color:var(--a-ink3);font-weight:400">optional</span></label><div class="input ph">Anything to remember</div></div>
+            <a href="#d1" class="btn pri" style="text-decoration:none">Add idea</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>D3</b> Add idea</p>
+    </div>
+    <div class="spec">
+      <h3>Add idea</h3>
+      <p class="route">presented over app/(tabs)/content/index.tsx</p>
+      <p class="what">Ideas arrive in bursts, so this sheet is built to be used five times in a row. Status isn't asked for — a new idea is an <strong>Idea</strong>, and anything else is a correction made later in D4. The pillar chips show their real colours at their real size, which is also how you learn the palette.</p>
+      <dl>
+        <dt>Components</dt><dd>Bottom sheet. Idea is a <code>TextInput multiline</code> that grows to two lines then scrolls — this is the ported <code>AutoTextarea</code> behaviour. Pillar chips are <code>Pressable</code>; selected fills with <code>PILLAR_COLORS[i].text</code> and white type.</dd>
+        <dt>Data</dt><dd><code>insertContent(userId, { idea, pillarId, status: 'Idea', notes })</code> with <code>sort_order</code> at the top of the list, so a new idea lands where it can be seen.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Pillar defaults to the active filter, else the first pillar — ported <code>getDefaultPillarId</code>.</li>
+          <li>After saving, the sheet stays open with fields cleared and the pillar kept, so the next idea is one line of typing. Closing is an explicit swipe-down.</li>
+          <li>Submit disabled on an empty idea; notes never block.</li>
+          <li>If no pillars exist, the field is replaced by a <strong>Create a pillar first</strong> link to D8.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“The idea”, not “Reel Idea” — the tab is already called Content. Optional fields say so next to the label.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d4">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Content</h1><span class="iconbtn"><svg><use href="#i-grip"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll np" style="padding:0 16px;opacity:.5"><div class="chips"><button class="chip on">All 13</button></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>DITL3</h2>
+            <p class="sub">Added 24 Aug · in Edited for 6 days</p>
+            <div class="field" style="margin-bottom:10px">
+              <label>Stage</label>
+              <div style="display:flex;align-items:center;gap:5px">
+                <span style="flex:1;height:5px;border-radius:3px;background:var(--a-green)"></span>
+                <span style="flex:1;height:5px;border-radius:3px;background:var(--a-green)"></span>
+                <span style="flex:1;height:5px;border-radius:3px;background:var(--a-green)"></span>
+                <span style="flex:1;height:5px;border-radius:3px;background:var(--a-amber)"></span>
+                <span style="flex:1;height:5px;border-radius:3px;background:var(--a-surf2);border:1px solid var(--a-border)"></span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px">
+                <span class="status edited" style="font-size:12.5px;padding:4px 10px">Edited</span>
+                <span style="font-size:13px;font-weight:600;color:var(--a-moss)">Mark as posted →</span>
+              </div>
+            </div>
+            <div class="sgroup" style="margin-bottom:12px">
+              <div class="srow"><svg class="lead"><use href="#i-pencil"></use></svg><span class="fl">Idea</span><span class="val">DITL3</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              <div class="srow"><svg class="lead"><use href="#i-film"></use></svg><span class="fl">Pillar</span><span class="val" style="color:#6b4fa0;font-weight:600">DITL</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+            </div>
+            <div class="field" style="margin-bottom:14px"><label>Notes</label><div class="input" style="min-height:58px;align-items:flex-start;padding-top:11px;font-size:14px;color:var(--a-ink2)">dk if still wanna post</div></div>
+            <div class="btnrow"><a href="#d1" class="btn sec" style="text-decoration:none">Done</a><div class="btn dan" style="flex:0 0 96px">Delete</div></div>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>D4</b> Idea detail</p>
+    </div>
+    <div class="spec">
+      <h3>Idea detail</h3>
+      <p class="route">presented over app/(tabs)/content/index.tsx</p>
+      <p class="what">The pipeline has five ordered stages, so the stage indicator is a five-segment bar — the one place in this app where a sequence is real and worth drawing as one. The next stage is offered as a single button, because moving one step forward is what happens 90% of the time.</p>
+      <dl>
+        <dt>Components</dt><dd>Bottom sheet, dynamic height. Five <code>View</code> segments, filled up to the current stage. Notes is the multiline input, committing on blur — the ported <code>AutoTextarea onBlur</code>.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>The button names the actual next stage: <strong>Mark as posted</strong> from Edited, <strong>Mark as filmed</strong> from Scripted, and so on. From Posted it disappears.</li>
+          <li>Tapping the current stage chip opens the full picker (D5) for jumping backward or skipping ahead.</li>
+          <li><strong>Idea</strong> and <strong>Pillar</strong> expand into an input / chip grid inside this sheet.</li>
+          <li>Each change writes immediately via <code>updateContent(id, changes)</code>. No Save button.</li>
+          <li>“in Edited for 6 days” needs a <code>status_changed_at</code> column. If it isn't there, show only the added date — don't compute it from <code>created_at</code> and call it a stage age.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>Stages keep the web app's exact words: Idea, Scripted, Filmed, Edited, Posted.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d5">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Content</h1><span class="iconbtn"><svg><use href="#i-grip"></use></svg></span><span class="iconbtn"><svg><use href="#i-gear"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll np" style="padding:0 16px;opacity:.5"><div class="chips"><button class="chip on">All 13</button></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>Stage</h2>
+            <p class="sub">DITL3</p>
+            <div class="sgroup">
+              <div class="srow"><span style="width:9px;height:9px;border-radius:50%;background:var(--a-ink3);flex:0 0 9px"></span><span class="fl">Idea</span></div>
+              <div class="srow"><span style="width:9px;height:9px;border-radius:50%;background:var(--a-blue);flex:0 0 9px"></span><span class="fl">Scripted</span></div>
+              <div class="srow"><span style="width:9px;height:9px;border-radius:50%;background:var(--a-purple);flex:0 0 9px"></span><span class="fl">Filmed</span></div>
+              <div class="srow" style="background:var(--a-surf2)"><span style="width:9px;height:9px;border-radius:50%;background:var(--a-amber);flex:0 0 9px"></span><span class="fl" style="font-weight:600">Edited</span><svg class="chev" style="color:var(--a-moss)"><use href="#i-check"></use></svg></div>
+              <div class="srow"><span style="width:9px;height:9px;border-radius:50%;background:var(--a-green);flex:0 0 9px"></span><span class="fl">Posted</span></div>
+            </div>
+            <a href="#d4" class="btn lnk" style="margin-top:12px;text-decoration:none">Cancel</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>D5</b> Stage picker</p>
+    </div>
+    <div class="spec">
+      <h3>Stage picker</h3>
+      <p class="route">presented over the idea detail sheet</p>
+      <p class="what">The ported <code>&lt;select&gt;</code>. Listed in pipeline order — not alphabetical, not current-first — because the order is the meaning. Each stage carries the colour it will show as on the card, so the choice previews its own result.</p>
+      <dl>
+        <dt>Components</dt><dd><code>ActionSheetIOS</code> can't show colour, so this is a small bottom sheet with 52pt rows. The current stage is tinted and ticked.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Selecting writes <code>updateContent(id, { status })</code> and closes both sheets, returning to the list with the card recoloured.</li>
+          <li>Moving to <strong>Posted</strong> drops the card into the collapsed Posted group. Animate the exit or it reads as a deletion.</li>
+          <li>Backward moves are allowed with no warning — "actually I need to re-edit that" is normal.</li>
+        </ul></dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d6">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><h1 class="sm" style="text-align:left;padding-left:4px">Drag to reorder</h1><a href="#d1" style="font-size:14px;font-weight:600;color:var(--a-moss);text-decoration:none;padding:0 6px">Done</a></div>
+        <div class="body">
+          <div class="scroll np" style="padding:14px 16px 0">
+            <div class="idea" style="box-shadow:0 8px 20px rgba(26,26,24,.14);transform:scale(1.02) rotate(-.4deg);border-color:var(--a-border2)">
+              <span class="rail" style="background:#6b4fa0"></span>
+              <span class="mid"><span class="ti">DITL3</span><span class="mt"><span class="status edited">Edited</span></span></span>
+              <span class="grip"><svg><use href="#i-grip"></use></svg></span>
+            </div>
+            <div style="height:3px;border-radius:2px;background:var(--a-moss);margin:2px 0 9px"></div>
+            <div class="idea" style="opacity:.75">
+              <span class="rail" style="background:#1e7a6e"></span>
+              <span class="mid"><span class="ti">KASA intro</span><span class="mt"><span class="status idea">Idea</span></span></span>
+              <span class="grip"><svg><use href="#i-grip"></use></svg></span>
+            </div>
+            <div class="idea" style="opacity:.75">
+              <span class="rail" style="background:#b04070"></span>
+              <span class="mid"><span class="ti">life comes in waves</span><span class="mt"><span class="status idea">Idea</span></span></span>
+              <span class="grip"><svg><use href="#i-grip"></use></svg></span>
+            </div>
+            <div class="idea" style="opacity:.75">
+              <span class="rail" style="background:#b04070"></span>
+              <span class="mid"><span class="ti">money while young</span><span class="mt"><span class="status scripted">Scripted</span></span></span>
+              <span class="grip"><svg><use href="#i-grip"></use></svg></span>
+            </div>
+            <div class="idea" style="opacity:.75">
+              <span class="rail" style="background:#1e7a6e"></span>
+              <span class="mid"><span class="ti">explore more things</span><span class="mt"><span class="status idea">Idea</span></span></span>
+              <span class="grip"><svg><use href="#i-grip"></use></svg></span>
+            </div>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>D6</b> Reorder</p>
+    </div>
+    <div class="spec">
+      <h3>Reorder</h3>
+      <p class="route">app/(tabs)/content/index.tsx · <code>reordering === true</code></p>
+      <p class="what">An explicit mode, entered from the grip in the header. Making cards draggable on long-press in the normal list fights the scroll gesture and steals the long-press people expect to open something — the web app can afford a hover-revealed drag handle, a phone can't.</p>
+      <dl>
+        <dt>Library</dt><dd><code>react-native-draggable-flatlist</code>, on <code>react-native-gesture-handler</code> + <code>react-native-reanimated</code>. Both ship with the Expo SDK, so this works in Expo Go. It replaces <code>@dnd-kit/*</code>, which is DOM-only.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Entering the mode hides the tab bar, filter chips and FAB, and swaps the title for <strong>Drag to reorder</strong> with a <strong>Done</strong> action. One job per mode.</li>
+          <li>The dragged card lifts with a shadow and a ~0.4° tilt; a moss insertion line marks where it lands. Other cards drop to 75% so the drag target reads clearly.</li>
+          <li><code>Haptics.impactAsync(Medium)</code> on pick-up, <code>Light</code> on each position change.</li>
+          <li>On release, write the new <code>sort_order</code> for affected rows only. Batch them into one call; don't fire an update per card.</li>
+          <li>Reordering is disabled while a pillar filter is active — dragging within a filtered subset produces an order nobody intended. Show “Clear the filter to reorder” instead.</li>
+        </ul></dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d7">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><a class="iconbtn" href="#d1"><svg><use href="#i-back"></use></svg></a><h1 class="sm">Pillars</h1><a class="iconbtn" href="#d8"><svg><use href="#i-plus"></use></svg></a></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:16px">
+            <p style="font-size:12.5px;color:var(--a-ink3);margin-bottom:14px;padding:0 2px">Pillars group your ideas and give each one its colour across the app.</p>
+            <div class="list">
+              <div class="row"><span class="cdot" style="background:#6b4fa0;width:11px;height:11px"></span><span class="mid"><span class="d">DITL</span><span class="s">4 ideas</span></span><svg width="16" height="16" style="color:var(--a-ink3)"><use href="#i-chev-r"></use></svg></div>
+              <div class="row"><span class="cdot" style="background:#c0502a;width:11px;height:11px"></span><span class="mid"><span class="d">Thought/Feeling</span><span class="s">2 ideas</span></span><svg width="16" height="16" style="color:var(--a-ink3)"><use href="#i-chev-r"></use></svg></div>
+              <div class="row"><span class="cdot" style="background:#1e7a6e;width:11px;height:11px"></span><span class="mid"><span class="d">Minimalistic Vlog</span><span class="s">3 ideas</span></span><svg width="16" height="16" style="color:var(--a-ink3)"><use href="#i-chev-r"></use></svg></div>
+              <div class="swipe"><div class="row"><span class="cdot" style="background:#b04070;width:11px;height:11px"></span><span class="mid"><span class="d">Story Telling</span><span class="s">3 ideas</span></span><svg width="16" height="16" style="color:var(--a-ink3)"><use href="#i-chev-r"></use></svg></div><span class="del"><svg><use href="#i-trash"></use></svg>Delete</span></div>
+              <div class="row"><span class="cdot" style="background:#2c5f8a;width:11px;height:11px"></span><span class="mid"><span class="d">Talking Head</span><span class="s">1 idea</span></span><svg width="16" height="16" style="color:var(--a-ink3)"><use href="#i-chev-r"></use></svg></div>
+            </div>
+            <a href="#d8" class="btn sec" style="margin-top:14px;text-decoration:none">Add a pillar</a>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>D7</b> Pillars</p>
+    </div>
+    <div class="spec">
+      <h3>Pillars</h3>
+      <p class="route">app/(tabs)/content/pillars.tsx · pushed</p>
+      <p class="what">The web app's <em>Manage Content Pillars</em> modal, as a pushed screen. Each row gains an idea count, which the web version doesn't show and which is exactly what you need before deleting one.</p>
+      <dl>
+        <dt>Data</dt><dd><code>fetchPillars</code> / <code>insertPillar</code> / <code>updatePillar</code> / <code>deletePillar</code>. Counts are derived from the already-loaded content list; no extra query.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Row tap → rename and recolour, in the same sheet layout as D8.</li>
+          <li><strong>Swipe to delete</strong> confirms with the consequence spelled out: “3 ideas use Story Telling. They’ll keep their notes but lose their pillar.” Then follow the web app's behaviour for orphaned <code>pillarId</code>s.</li>
+          <li>A pillar with 0 ideas deletes without a confirmation.</li>
+          <li>Both the header <code>+</code> and the button at the bottom open D8; the button is there because a five-row list leaves the header far from the thumb.</li>
+        </ul></dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d8">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><span class="iconbtn"><svg><use href="#i-back"></use></svg></span><h1 class="sm">Pillars</h1><span class="iconbtn"><svg><use href="#i-plus"></use></svg></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:16px;opacity:.5"><div class="list"><div class="row"><span class="cdot" style="background:#6b4fa0;width:11px;height:11px"></span><span class="mid"><span class="d">DITL</span><span class="s">4 ideas</span></span></div></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>New pillar</h2>
+            <div class="field" style="margin-top:12px"><label>Name</label><div class="input focus">Behind the build</div></div>
+            <div class="field" style="margin-bottom:18px">
+              <label>Colour</label>
+              <div class="swatches">
+                <button style="background:#b04070"></button>
+                <button style="background:#2c5f8a"></button>
+                <button style="background:#c0502a"></button>
+                <button class="on" style="background:#b5720a"></button>
+                <button style="background:#6b4fa0"></button>
+                <button style="background:#1e7a6e"></button>
+                <button style="background:#2d7a4a"></button>
+                <button style="background:#5a4890"></button>
+              </div>
+              <div style="margin-top:14px;padding:12px;border:1px solid var(--a-border);border-radius:12px;background:var(--a-surf2);display:flex;align-items:center;gap:10px">
+                <span style="width:3px;align-self:stretch;min-height:34px;border-radius:2px;background:#b5720a"></span>
+                <span style="flex:1"><span style="display:block;font-size:14.5px;font-weight:600;letter-spacing:-.015em;margin-bottom:5px">Behind the build</span><span class="pillar" style="background:#fdf5e6;color:#b5720a">Behind the build</span></span>
+              </div>
+            </div>
+            <a href="#d7" class="btn pri" style="text-decoration:none">Add pillar</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>D8</b> Add pillar</p>
+    </div>
+    <div class="spec">
+      <h3>Add pillar</h3>
+      <p class="route">presented over app/(tabs)/content/pillars.tsx</p>
+      <p class="what">Eight swatches and a live preview of the card the pillar will produce. Colour is the pillar's whole job in this app — it's how you scan the list — so picking it blind, as the web modal does, is the wrong way round.</p>
+      <dl>
+        <dt>Data</dt><dd>Swatches are the eight <code>PILLAR_COLORS</code> entries, rendered from <code>.text</code>; <code>colorIdx</code> is what's stored, so the web app and the phone stay in sync. Don't add a colour picker — eight fixed pairs are what both clients understand.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Selected swatch gets a 2pt ink ring, not a tick — the colour has to stay unobstructed.</li>
+          <li>The preview shows the rail and the chip together, exactly as they appear on a content card.</li>
+          <li>Default selection is the first colour not already in use.</li>
+          <li>Submit disabled on an empty name; duplicate names are allowed (they're labels, not keys).</li>
+        </ul></dd>
+        <dt>Edit variant</dt><dd>Same sheet with the title <strong>Edit pillar</strong> and a <strong>Save changes</strong> button. Changing the colour recolours every card in that pillar at once — the preview is doing real work here.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="d9">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar"><h1>Content</h1><a class="iconbtn" href="#d7"><svg><use href="#i-gear"></use></svg></a></div>
+        <div class="body">
+          <div class="scroll">
+            <div class="empty" style="padding-top:104px">
+              <div class="ic"><svg><use href="#i-film"></use></svg></div>
+              <h3>No ideas yet</h3>
+              <p style="max-width:28ch">Drop a reel idea in the moment you think of it. You can pick a pillar and a stage later.</p>
+              <a href="#d3" class="btn pri" style="max-width:180px;margin:0 auto;min-height:46px;font-size:14.5px;text-decoration:none">Add your first idea</a>
+              <a href="#d7" style="display:block;margin-top:14px;font-size:13px;color:var(--a-ink2);text-decoration:none">Set up pillars</a>
+            </div>
+          </div>
+          <a class="fab" href="#d3"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="tabbar">
+          <a href="#b1"><svg><use href="#i-wallet"></use></svg>Finance</a>
+          <a href="#c1"><svg><use href="#i-check-c"></use></svg>Habits</a>
+          <a class="on" href="#d1"><svg><use href="#i-film"></use></svg>Content</a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>D9</b> No ideas yet</p>
+    </div>
+    <div class="spec">
+      <h3>No ideas yet</h3>
+      <p class="route">app/(tabs)/content/index.tsx · <code>content.length === 0</code></p>
+      <p class="what">Two ways forward, ranked. Capturing an idea is the point of the tab, so it gets the button; setting up pillars is the setup task, so it gets a quiet link underneath.</p>
+      <dl>
+        <dt>Behaviour</dt><dd>Filter chips and the reorder grip are hidden. If pillars also don't exist, the link becomes the primary action and the idea button moves below it — you can't file an idea with nowhere to file it.</dd>
+        <dt>Copy</dt><dd>“You can pick a pillar and a stage later” removes the reason to hesitate, which is what an empty pipeline needs.</dd>
+      </dl>
+    </div>
+  </article>
+</section>
+
+<section class="grp" id="grp-e">
+  <div class="grp-hd">
+    <h2>Settings</h2>
+    <p>Not a tab. Three tabs of daily work don't need a fourth that gets opened twice a month, so Settings is pushed from a gear in each tab's header.</p>
+  </div>
+
+  <article class="block" id="e1">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><a class="iconbtn" href="#b1"><svg><use href="#i-back"></use></svg></a><h1 class="sm">Settings</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:16px">
+            <div class="sgrouplbl">Account</div>
+            <div class="sgroup">
+              <div class="srow" style="cursor:default"><span style="width:34px;height:34px;flex:0 0 34px;border-radius:12px;background:var(--a-moss-l);color:var(--a-moss);display:grid;place-items:center;font-weight:700;font-size:14px">L</span><span class="fl"><span style="display:block;font-size:14.5px;font-weight:500">lucentwooo@gmail.com</span><span style="font-size:12px;color:var(--a-ink3)">Synced with the web dashboard</span></span></div>
+              <a class="srow dan" href="#e2" style="text-decoration:none"><svg class="lead" style="color:var(--a-red)"><use href="#i-out"></use></svg><span class="fl">Sign out</span></a>
+            </div>
+            <div class="sgrouplbl">Tools</div>
+            <div class="sgroup">
+              <a class="srow" href="#b12" style="text-decoration:none;color:inherit"><svg class="lead"><use href="#i-swap"></use></svg><span class="fl">Currency converter</span><svg class="chev"><use href="#i-chev-r"></use></svg></a>
+              <a class="srow" href="#c6" style="text-decoration:none;color:inherit"><svg class="lead"><use href="#i-archive"></use></svg><span class="fl">Archived habits</span><span class="val">3</span><svg class="chev"><use href="#i-chev-r"></use></svg></a>
+              <a class="srow" href="#d7" style="text-decoration:none;color:inherit"><svg class="lead"><use href="#i-film"></use></svg><span class="fl">Content pillars</span><span class="val">5</span><svg class="chev"><use href="#i-chev-r"></use></svg></a>
+            </div>
+            <div class="sgrouplbl">Finance</div>
+            <div class="sgroup">
+              <div class="srow"><svg class="lead"><use href="#i-wallet"></use></svg><span class="fl">Default category</span><span class="val">Food</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+              <div class="srow"><svg class="lead"><use href="#i-info"></use></svg><span class="fl">Open on</span><span class="val">This month</span><svg class="chev"><use href="#i-chev-r"></use></svg></div>
+            </div>
+            <p style="text-align:center;font-size:11px;color:var(--a-ink3);margin-top:22px;line-height:1.6">dashboard 1.0.0 · Expo SDK 54<br>Calendar lives on the web dashboard only</p>
+          </div>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>E1</b> Settings</p>
+    </div>
+    <div class="spec">
+      <h3>Settings</h3>
+      <p class="route">app/settings.tsx · pushed from any tab header</p>
+      <p class="what">Grouped rows, each one either a fact or a destination. The account row shows the email and says what signing in actually buys — the same data on both clients. The footer says plainly that there is no calendar here, so its absence reads as a decision rather than a missing feature.</p>
+      <dl>
+        <dt>Components</dt><dd>Plain <code>ScrollView</code> of grouped <code>Pressable</code> rows, 52pt each. No settings library.</dd>
+        <dt>Rows</dt><dd><ul>
+          <li><strong>Sign out</strong> → E2.</li>
+          <li><strong>Currency converter</strong> → B12. It's a travel utility, not a finance feature, so it lives here rather than in the tab.</li>
+          <li><strong>Archived habits</strong> → C6 · <strong>Content pillars</strong> → D7. Both reachable from their tabs too; this is the second door, not the only one.</li>
+          <li><strong>Default category</strong> and <strong>Open on</strong> are the two <code>AsyncStorage</code> preferences the add-expense sheet and the ledger already read. Nothing else is configurable — no theme switch, no currency setting, no notification toggles until something actually sends one.</li>
+        </ul></dd>
+        <dt>Demo variant</dt><dd>The account group becomes a single <strong>Sign in</strong> row. Everything else stays.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="e2">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><span class="iconbtn"><svg><use href="#i-back"></use></svg></span><h1 class="sm">Settings</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:16px;opacity:.45">
+            <div class="sgrouplbl">Account</div>
+            <div class="sgroup"><div class="srow"><span style="width:34px;height:34px;flex:0 0 34px;border-radius:12px;background:var(--a-moss-l);color:var(--a-moss);display:grid;place-items:center;font-weight:700;font-size:14px">L</span><span class="fl"><span style="display:block;font-size:14.5px;font-weight:500">lucentwooo@gmail.com</span></span></div><div class="srow dan"><svg class="lead" style="color:var(--a-red)"><use href="#i-out"></use></svg><span class="fl">Sign out</span></div></div>
+          </div>
+          <div class="scrim" style="background:rgba(26,26,24,.32);display:grid;place-items:center;padding:0 44px">
+            <div style="background:#f4f4f2;border-radius:16px;overflow:hidden;width:100%;box-shadow:0 20px 44px rgba(0,0,0,.28)">
+              <div style="padding:20px 18px 16px;text-align:center">
+                <div style="font-size:16px;font-weight:600;letter-spacing:-.02em;margin-bottom:5px">Sign out?</div>
+                <div style="font-size:12.5px;color:var(--a-ink2);line-height:1.45">Your data stays on the server. The app switches to demo data until you sign back in.</div>
+              </div>
+              <div style="display:flex;border-top:1px solid #d8d8d4">
+                <a href="#e1" style="flex:1;text-align:center;padding:13px 0;font-size:15px;color:var(--a-blue);border-right:1px solid #d8d8d4;text-decoration:none">Cancel</a>
+                <a href="#a1" style="flex:1;text-align:center;padding:13px 0;font-size:15px;font-weight:600;color:var(--a-red);text-decoration:none">Sign out</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>E2</b> Sign out</p>
+    </div>
+    <div class="spec">
+      <h3>Sign out</h3>
+      <p class="route">app/settings.tsx · <code>Alert.alert</code></p>
+      <p class="what">A native alert, not a custom sheet — this is exactly what the platform dialog is for, and using it here means it looks like every other confirmation on the phone.</p>
+      <dl>
+        <dt>Components</dt><dd><code>Alert.alert('Sign out?', message, [{ text: 'Cancel', style: 'cancel' }, { text: 'Sign out', style: 'destructive', onPress }])</code>.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><code>supabase.auth.signOut()</code>, clear the query cache, then <code>router.replace('/sign-in')</code>.</li>
+          <li>Also clear the <code>AsyncStorage</code> session key so a cold start doesn't restore it.</li>
+          <li>Leave the two UI preferences (default category, open-on) in place — they aren't account data.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>Answers the question someone actually has before tapping: does this delete anything? It says no, and says what changes instead.</dd>
+      </dl>
+    </div>
+  </article>
+</section>
+
+<section class="grp" id="tokens">
+  <div class="grp-hd">
+    <h2>Tokens &amp; rules</h2>
+    <p>Carried over from <code>src/index.css</code> so the two clients are recognisably one product. Put these in <code>mobile/theme.ts</code> and import them; no inline hex anywhere else.</p>
+  </div>
+  <div class="spec" style="max-width:none">
+    <dl>
+      <dt>Ground</dt><dd><code>paper #f5f3ee</code> app background · <code>surface #ffffff</code> cards and sheets · <code>surface2 #f9f8f5</code> pressed and inset · <code>border #e5e3dc</code> hairlines · <code>border2 #d4d1c8</code> inputs</dd>
+      <dt>Ink</dt><dd><code>ink #1a1a18</code> · <code>ink2 #6b6960</code> subtitles · <code>ink3 #9c9990</code> labels, placeholders, zeroes</dd>
+      <dt>Accent</dt><dd><code>moss #3b6b3b</code> — primary buttons, active tab, checked boxes, links. One accent, used only for the thing to be done next.</dd>
+      <dt>Semantic</dt><dd><code>green #4a7c59</code> income and completion · <code>red #c0392b</code> expenses and destructive · <code>amber #b5720a</code> partial progress and demo notices. Separate from the accent — a moss button is never a status.</dd>
+      <dt>Category</dt><dd>The seven <code>CAT_COLORS</code> values verbatim: Transport <code>#a8c4e0</code> · Food <code>#c8ddb8</code> · Events <code>#d4b8d4</code> · Misc <code>#d4c8a0</code> · Clothes <code>#e8b8c0</code> · Recurring <code>#a8d4cc</code> · Gifts <code>#e8c0c8</code>. Used for dots, donut slices and stacked bars alike.</dd>
+      <dt>Pillar</dt><dd>The eight <code>PILLAR_COLORS</code> <code>{bg, text}</code> pairs verbatim, addressed by <code>colorIdx</code>.</dd>
+      <dt>Type</dt><dd>DM Sans throughout via <code>@expo-google-fonts/dm-sans</code>. Titles 26/700/−0.03em · screen titles 19/600 · sheet titles 18/600 · body 14.5/500 · subtitle 12/400 · label 11.5/500. Nothing under 11. No uppercase labels — the web app's tracked-out caps are dropped in favour of sentence case.</dd>
+      <dt>Numbers</dt><dd>Every figure gets <code>style={{ fontVariant: ['tabular-nums'] }}</code>. Money always two decimals. Large currencies through <code>Intl.NumberFormat</code>.</dd>
+      <dt>Shape</dt><dd>Sheets 26 · cards 14–16 · inputs and buttons 12–13 · chips 999 · checkboxes 10. Radius indicates what kind of object something is, so don't flatten it to one value.</dd>
+      <dt>Spacing</dt><dd>16pt screen gutter · 8–9pt between cards · 13–15pt inside cards · rows 56pt, settings rows 52pt.</dd>
+      <dt>Touch</dt><dd>44×44pt minimum, no exceptions. FAB 56pt at 18pt from the right, 98pt from the bottom.</dd>
+      <dt>Safe areas</dt><dd><code>useSafeAreaInsets()</code> for both ends. The 47pt status bar and 82pt tab bar in these frames are an iPhone 15 — read them, never hardcode them.</dd>
+      <dt>Shadow</dt><dd>Only three things cast one: the FAB, an open sheet, and a card being dragged. Everything else separates with a hairline. Shadows on every card is what makes a layout look flat.</dd>
+      <dt>Motion</dt><dd>Sheet presentation, the checkbox spring, the ring completing, and list reordering. That's the list. No entrance animations on lists or cards, and everything checks <code>AccessibilityInfo.isReduceMotionEnabled()</code>.</dd>
+      <dt>Haptics</dt><dd><code>Light</code> on a check or a successful save · <code>Medium</code> on drag pick-up and swipe-to-delete · <code>Success</code> only when a day completes · <code>Warning</code> on a rejected sign-in. Nothing else vibrates.</dd>
+      <dt>Logo</dt><dd><code>public/logo.png</code> — the UD monogram, 500×500 with an opaque white field. Use it on the sign-in and loading screens at 36pt. The web app composites it with <code>mix-blend-mode: multiply</code> to sink the white into the paper ground; React Native has no blend mode, so <strong>export a transparent-background PNG</strong> for <code>mobile/assets/logo.png</code> rather than shipping the white square. Same asset drives <code>icon</code>, <code>splash.image</code> and <code>adaptiveIcon.foregroundImage</code> in <code>app.json</code>, with <code>backgroundColor: "#f5f3ee"</code>.</dd>
+      <dt>Dark mode</dt><dd>Out of scope. The app is light-only, like the web version. <code>userInterfaceStyle: 'light'</code> in <code>app.json</code> so the OS doesn't recolour native controls underneath a light UI.</dd>
+    </dl>
+    <div class="warn"><b>The three rules that matter most:</b> a row never edits in place — it opens a sheet; every tappable thing clears 44pt; every figure is tabular. Most of the friction on the current mobile-web build traces to one of those three.</div>
+  </div>
+</section>
+
+<section class="grp" id="deps">
+  <div class="grp-hd">
+    <h2>Dependencies</h2>
+    <p>Everything here runs in <strong>Expo Go</strong> — no custom dev build, no native module compilation, no prebuild.</p>
+  </div>
+  <div class="spec" style="max-width:none">
+    <dl>
+      <dt>Core</dt><dd><code>expo</code> · <code>expo-router</code> (file-based routing, the tab layout) · <code>react-native-safe-area-context</code> · <code>react-native-screens</code></dd>
+      <dt>Data</dt><dd><code>@supabase/supabase-js</code> · <code>@react-native-async-storage/async-storage</code> — required for session persistence, or every cold start signs the user out · <code>@tanstack/react-query</code> optional but recommended over porting <code>useAppData</code>'s manual loading flags</dd>
+      <dt>Interaction</dt><dd><code>react-native-gesture-handler</code> (swipe-to-delete) · <code>react-native-reanimated</code> · <code>@gorhom/bottom-sheet</code> (every form in this spec) · <code>react-native-draggable-flatlist</code> (replaces <code>@dnd-kit/*</code>) · <code>expo-haptics</code></dd>
+      <dt>Display</dt><dd><code>react-native-svg</code> · <code>react-native-gifted-charts</code> (replaces <code>chart.js</code> + <code>react-chartjs-2</code>) · <code>@expo-google-fonts/dm-sans</code> + <code>expo-font</code> · <code>@shopify/flash-list</code> optional for the ledger · <code>@react-native-community/datetimepicker</code></dd>
+      <dt>Dropped</dt><dd><code>@dnd-kit/core</code>, <code>@dnd-kit/sortable</code>, <code>@dnd-kit/utilities</code>, <code>chart.js</code>, <code>react-chartjs-2</code> — all DOM-only. Google Identity Services and the whole <code>useGoogleCalendar</code> hook go with the calendar.</dd>
+      <dt>Deliberately not used</dt><dd><code>victory-native</code> v40+ and <code>@shopify/react-native-skia</code> (needs a dev build) · <code>react-native-modal</code> (bottom sheets cover it) · any UI kit — the token system above is small enough to hand-build, and a kit would fight it</dd>
+      <dt>Install</dt><dd>Use <code>npx expo install</code>, not <code>npm install</code>, so versions match the SDK. <code>react-native-reanimated</code> needs its Babel plugin listed <strong>last</strong> in <code>babel.config.js</code>, and <code>GestureHandlerRootView</code> has to wrap the root layout or swipes silently do nothing.</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="grp" id="files">
+  <div class="grp-hd">
+    <h2>File tree</h2>
+    <p>What to create. Nothing outside <code>mobile/</code> changes.</p>
+  </div>
+  <div class="spec" style="max-width:none">
+    <div style="overflow-x:auto;background:var(--code);border:1px solid var(--rule);border-radius:10px;padding:16px 18px"><pre style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.75;color:var(--code-ink)">mobile/
+├── app.json                      userInterfaceStyle: light
+├── babel.config.js               reanimated plugin LAST
+├── app/
+│   ├── _layout.tsx               GestureHandlerRootView, fonts, auth gate (A3)
+│   ├── index.tsx                 redirect → /sign-in or /finance
+│   ├── (auth)/sign-in.tsx        A1, A2
+│   ├── settings.tsx              E1, E2
+│   ├── converter.tsx             B12
+│   └── (tabs)/
+│       ├── _layout.tsx           3 tabs, demo banner (A4), error state (A5)
+│       ├── finance/
+│       │   ├── index.tsx         B1, B2
+│       │   ├── insights.tsx      B8
+│       │   └── income.tsx        B9
+│       ├── habits/
+│       │   ├── index.tsx         C1, C2, C3, C7
+│       │   └── archived.tsx      C6
+│       └── content/
+│           ├── index.tsx         D1, D2, D6, D9
+│           └── pillars.tsx       D7
+├── components/
+│   ├── sheets/                   B3–B7, B10, B11, C4, C5, D3–D5, D8
+│   ├── LedgerRow.tsx             swipeable expense row
+│   ├── HabitCheck.tsx            3 check states + spring
+│   ├── IdeaCard.tsx
+│   ├── WeekStrip.tsx
+│   ├── Chip.tsx  Stat.tsx  EmptyState.tsx  UndoToast.tsx
+│   └── charts/Donut.tsx  StackedBars.tsx
+├── lib/
+│   ├── supabase.ts               createClient + AsyncStorage
+│   ├── db.ts                     ported from src/services/db.js
+│   ├── constants.ts              ported from src/constants/index.js
+│   └── format.ts                 money, dates, "Today"/"Yesterday"
+├── hooks/
+│   ├── useAuth.ts                ported, minus DOM
+│   ├── useAppData.ts             ported, incl. JWT-skew retry
+│   └── usePrefs.ts               AsyncStorage: default category, open-on, last month
+└── theme.ts                      every token from the section above</pre></div>
+    <div class="warn"><b>Port, don't rewrite:</b> <code>src/services/db.js</code> and <code>src/constants/index.js</code> are already platform-free. Copy them, add types, and leave the queries alone — they're the contract the web app also depends on.</div>
+  </div>
+</section>
+
+<section class="grp" id="order">
+  <div class="grp-hd">
+    <h2>Build order</h2>
+    <p>Five passes, each one leaving something usable on a phone.</p>
+  </div>
+  <div class="spec" style="max-width:none">
+    <dl>
+      <dt>1 · Shell</dt><dd>Expo app, <code>theme.ts</code>, DM Sans, <code>GestureHandlerRootView</code>, Supabase with <code>AsyncStorage</code>, auth gate, sign-in, three empty tabs. <strong>Done when</strong> signing in on Expo Go lands on a Finance tab and survives a cold start. Screens A1–A3, E1–E2.</dd>
+      <dt>2 · Finance ledger</dt><dd>Port <code>db.ts</code>, build the date-grouped list, stat cards, swipe-to-delete with undo, the filter sheet, add-expense and detail sheets. <strong>Done when</strong> an expense logged on the phone appears in the web app on refresh. B1–B6.</dd>
+      <dt>3 · Habits</dt><dd>Week strip, today card, the three check states, back-fill, add/actions sheets, archived. <strong>Done when</strong> a Tuesday tick made on Saturday shows on Tuesday in the web grid — that's the one place the <code>(weekStart, dayIndex)</code> mapping can quietly go wrong. C1–C7.</dd>
+      <dt>4 · Content</dt><dd>Idea cards, pillar chips, detail and stage sheets, pillar management, then reorder mode last since it's the only piece needing Reanimated gestures. <strong>Done when</strong> a drag on the phone and a drag on the web produce the same order. D1–D9.</dd>
+      <dt>5 · Trim</dt><dd>Insights charts, income screen, converter, event markers, every empty state, haptics, the reduce-motion checks. These are all real, and none of them blocks daily use. B7–B12.</dd>
+    </dl>
+    <div class="warn"><b>Worth writing tests for, even in a personal app:</b> the habit week mapping (<code>dateFromWeekStartAndDay</code> ↔ <code>weekStartAndDayFromDate</code>), <code>sort_order</code> around event <code>end</code> rows, and the currency conversion. Everything else is visible the moment you look at the screen; those three fail silently.</div>
+  </div>
+</section>
+
+</main>
+</div>
+</div>
+
+</body>
+</html>

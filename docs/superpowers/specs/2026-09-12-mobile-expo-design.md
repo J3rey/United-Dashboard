@@ -2,9 +2,10 @@
 
 **Date:** 2026-09-12
 **Status:** approved, not yet implemented
-**Mocks + full per-screen spec:** https://claude.ai/code/artifact/190613e6-1c0c-4839-862c-8e01ac952083
+**Mocks + full per-screen spec:** [`docs/mobile/mobile-screens.html`](../../mobile/mobile-screens.html)
+(also published at https://claude.ai/code/artifact/190613e6-1c0c-4839-862c-8e01ac952083 — that link needs a login, so the file in this repo is the one to read)
 
-The artifact above is the implementation contract: 35 screens at 390×844, each
+That file is the implementation contract: 35 screens at 390×844, each
 with its `expo-router` route, React Native components, libraries, behaviour and
 copy. This file records *why*, so the decisions survive without the link.
 
