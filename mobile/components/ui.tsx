@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { BackHandler, useWindowDimensions, Pressable, StyleSheet, Text, View, type TextInputProps } from 'react-native';
+import { BackHandler, useWindowDimensions, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { DatePicker } from './DatePicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,7 +44,8 @@ export function Sheet({ title, subtitle, children, onClose, confirmClose }: { ti
   </BottomSheetModal>;
 }
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
-  return <View style={ui.field}><Text style={ui.label}>{label}</Text><BottomSheetTextInput {...props} accessibilityLabel={label} placeholderTextColor={colors.ink3} selectionColor={colors.moss} style={[ui.input, props.style]}/></View>;
+  const Input = Platform.OS === 'web' ? TextInput : BottomSheetTextInput;
+  return <View style={ui.field}><Text style={ui.label}>{label}</Text><Input {...props} accessibilityLabel={label} placeholderTextColor={colors.ink3} selectionColor={colors.moss} style={[ui.input, props.style]}/></View>;
 }
 export function DateField({ value, onChange, label = 'Date' }: { value: string; onChange: (date: string) => void; label?: string }) {
   const [open, setOpen] = useState(false);
