@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
   United Dashboard — mobile (Expo) handoff spec.
-  35 screens at 390x844, each with its expo-router route, React Native
+  38 screens at 390x844, each with its expo-router route, React Native
   components, libraries, behaviour and copy. Open in a browser to see the
   mocks; read as text for the spec. Decisions: docs/superpowers/specs/2026-09-12-mobile-expo-design.md
 -->
@@ -196,6 +196,9 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
 .swipe .row{transform:translateX(-76px);border-bottom:0;background:var(--a-surf);position:relative;z-index:2}
 .swipe .del{position:absolute;top:0;bottom:0;right:0;width:76px;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;gap:3px}
 .swipe .del svg{width:19px;height:19px}
+.swipe.res{background:var(--a-moss)}
+.swipe.res .row{transform:translateX(76px)}
+.swipe.res .del{right:auto;left:0}
 
 .empty{text-align:center;padding:52px 30px}
 .empty .ic{width:46px;height:46px;margin:0 auto 16px;border-radius:15px;background:var(--a-surf);border:1px solid var(--a-border);display:grid;place-items:center;color:var(--a-ink3)}
@@ -368,7 +371,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
   <dl class="facts">
     <div class="fact"><dt>Location</dt><dd>mobile/</dd></div>
     <div class="fact"><dt>Tabs</dt><dd>Finance · Habits · Content</dd></div>
-    <div class="fact"><dt>Screens</dt><dd>35</dd></div>
+    <div class="fact"><dt>Screens</dt><dd>38</dd></div>
     <div class="fact"><dt>Router</dt><dd>expo-router v4</dd></div>
     <div class="fact"><dt>Backend</dt><dd>unchanged</dd></div>
   </dl>
@@ -397,6 +400,9 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
   <a href="#b10"><span class="n">B10</span>Add income</a>
   <a href="#b11"><span class="n">B11</span>Edit income</a>
   <a href="#b12"><span class="n">B12</span>Converter</a>
+  <a href="#b13"><span class="n">B13</span>Debts</a>
+  <a href="#b14"><span class="n">B14</span>Add debt</a>
+  <a href="#b15"><span class="n">B15</span>Edit debt</a>
   <h2>Habits</h2>
   <a href="#c1"><span class="n">C1</span>Today</a>
   <a href="#c2"><span class="n">C2</span>Week complete</a>
@@ -435,7 +441,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
   <div class="spec" style="max-width:none">
     <dl>
       <dt>Scope</dt><dd>A new Expo app in <code>mobile/</code> with its own <code>package.json</code>. Three tabs — <strong>Finance</strong>, <strong>Habits</strong>, <strong>Content</strong> — plus a pushed Settings screen. <strong>No Calendar tab.</strong> The web app keeps its calendar; the phone does not get one, so no Google Calendar OAuth, no <code>expo-auth-session</code>, no time grids.</dd>
-      <dt>Backend</dt><dd>Same Supabase project, same tables, no schema change: <code>finance_transactions</code>, <code>finance_income</code>, <code>habits</code>, <code>habit_checks</code>, <code>pillars</code>, <code>content</code>. Port <code>src/services/db.js</code> across as-is — it is plain <code>supabase-js</code> with no DOM dependency. Same for <code>src/constants/index.js</code> (<code>PILLAR_COLORS</code>, <code>CAT_COLORS</code>, <code>CATS</code>, <code>RATES</code>) and the <code>useAppData</code> shape.</dd>
+      <dt>Backend</dt><dd>Same Supabase project, same tables, no schema change: <code>finance_transactions</code>, <code>finance_income</code>, <code>finance_debts</code>, <code>habits</code>, <code>habit_checks</code>, <code>pillars</code>, <code>content</code>. Port <code>src/services/db.js</code> across as-is — it is plain <code>supabase-js</code> with no DOM dependency. Same for <code>src/constants/index.js</code> (<code>PILLAR_COLORS</code>, <code>CAT_COLORS</code>, <code>CATS</code>, <code>RATES</code>) and the <code>useAppData</code> shape.</dd>
       <dt>Auth</dt><dd>Supabase email/password, same as web. On native the client needs <code>AsyncStorage</code> passed in explicitly or the session is lost on every cold start:<br><code>createClient(url, key, { auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } })</code><br>Keep the web app's clock-skew retry (commit <code>3b00f96</code>): if <code>fetchAll</code> throws <code>JWT issued at future</code>, wait 2s and retry once.</dd>
       <dt>Demo mode</dt><dd><code>user === null</code> means demo — seed from a ported <code>defaultState</code> and let every control work locally without writing to Supabase, exactly like the web app. Signed out is a usable state, not a wall.</dd>
       <dt>Not ported</dt><dd>Anything DOM-bound: <code>prompt()</code> cell editing, <code>contentEditable</code> habit renaming, <code>document.createElement</code> HTML stripping, <code>localStorage</code>. Every one of those becomes a bottom sheet or <code>AsyncStorage</code>. Rule for the whole app: <strong>a row never edits in place — tapping it opens a sheet.</strong></dd>
@@ -672,7 +678,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
           <div class="scroll">
             <a class="monthpill" href="#b3" style="margin-bottom:14px;text-decoration:none;color:inherit">September 2026 <svg><use href="#i-chev-d"></use></svg></a>
             <div class="stats">
-              <div class="stat wide"><div><div class="l">Net this month</div><div class="v pos">+$245.89</div></div><a href="#b9" style="font-size:12px;color:var(--a-moss);font-weight:600;text-decoration:none">Income →</a></div>
+              <div class="stat wide"><div><div class="l">Net this month</div><div class="v pos">+$245.89</div></div><span style="display:flex;gap:12px"><a href="#b9" style="font-size:12px;color:var(--a-moss);font-weight:600;text-decoration:none">Income →</a><a href="#b13" style="font-size:12px;color:var(--a-moss);font-weight:600;text-decoration:none">Debts →</a></span></div>
               <div class="stat"><div class="l">Out</div><div class="v neg">$150.84</div></div>
               <div class="stat"><div class="l">In</div><div class="v">$396.73</div></div>
             </div>
@@ -717,7 +723,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
         <dt>Behaviour</dt><dd><ul>
           <li><strong>Row tap</strong> → expense detail sheet (B6). Never inline editing.</li>
           <li><strong>Swipe left</strong> reveals Delete at 76pt. Confirm with <code>Haptics.impactAsync(Medium)</code> + an undo toast for 4s; delete from Supabase when the toast expires, so undo costs no round trip.</li>
-          <li><strong>Month pill</strong> → filter sheet (B3). <strong>Filter icon</strong> → same sheet. <strong>Chart icon</strong> → Insights (B8). <strong>Income →</strong> → Income (B9).</li>
+          <li><strong>Month pill</strong> → filter sheet (B3). <strong>Filter icon</strong> → same sheet. <strong>Chart icon</strong> → Insights (B8). <strong>Income →</strong> → Income (B9). <strong>Debts →</strong> → Debts (B13).</li>
           <li><strong>FAB</strong> → add expense (B4). It sits 98pt from the bottom, clear of the tab bar, right side for thumb reach.</li>
           <li>Day headers show that day's expense subtotal, right-aligned on the same column as the rows.</li>
         </ul></dd>
@@ -1273,6 +1279,136 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
           <li>Results use <code>Intl.NumberFormat</code> so IDR reads <code>1,224,000</code> and not <code>1224000</code>.</li>
         </ul></dd>
         <dt>Honesty</dt><dd>“stored rate, not live” sits under the result. The web app says “Approximate rates only” in the corner; on a phone someone will use this at a checkout, so the caveat goes next to the number they're about to trust.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b13">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><a class="iconbtn" href="#b1"><svg><use href="#i-back"></use></svg></a><h1 class="sm">Debts</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:14px">
+            <div class="stat wide" style="margin-bottom:16px"><div><div class="l">Still owed</div><div class="v pos">$185.00</div></div><span style="font-size:12px;color:var(--a-ink3)">3 open</span></div>
+            <div class="sgrouplbl">Open</div>
+            <div class="list" style="margin-bottom:16px">
+              <a class="row" href="#b15"><span class="mid"><span class="d">Kevin</span><span class="s">Bali flights · Tue 18 Aug</span></span><span class="amt" style="color:var(--a-green)">$120.00</span></a>
+              <div class="swipe res"><a class="row" href="#b15"><span class="mid"><span class="d">Sarah</span><span class="s">Dinner at Chin Chin · Wed 2 Sep</span></span><span class="amt" style="color:var(--a-green)">$45.00</span></a><span class="del"><svg><use href="#i-check"></use></svg>Resolve</span></div>
+              <div class="swipe"><a class="row" href="#b15"><span class="mid"><span class="d">Josh</span><span class="s">Uber home · Sat 12 Sep</span></span><span class="amt" style="color:var(--a-green)">$20.00</span></a><span class="del"><svg><use href="#i-trash"></use></svg>Delete</span></div>
+            </div>
+            <div class="sgrouplbl" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">Archived (2)<svg width="15" height="15" style="color:var(--a-ink3);transform:rotate(180deg)"><use href="#i-chev-d"></use></svg></div>
+            <div class="list">
+              <a class="row" href="#b15"><span class="mid"><span class="d" style="text-decoration:line-through;color:var(--a-ink3)">Mum</span><span class="s">Groceries · Resolved Fri 4 Sep</span></span><span class="amt" style="color:var(--a-ink3)">$62.40</span></a>
+              <a class="row" href="#b15"><span class="mid"><span class="d" style="text-decoration:line-through;color:var(--a-ink3)">Kevin</span><span class="s">Concert ticket · Resolved Mon 27 Jul</span></span><span class="amt" style="color:var(--a-ink3)">$95.00</span></a>
+            </div>
+          </div>
+          <div class="fade"></div>
+          <a class="fab" href="#b14"><svg><use href="#i-plus"></use></svg></a>
+        </div>
+        <div class="homebar"></div>
+      </div></div>
+      <p class="cap"><b>B13</b> Debts</p>
+    </div>
+    <div class="spec">
+      <h3>Debts</h3>
+      <p class="route">app/(tabs)/finance/debts.tsx · pushed</p>
+      <p class="what">Money people owe you. It is a short list that changes rarely, so it takes the same pushed-screen shape as Income (B9): a headline stat, one list, a FAB. Nothing here touches the ledger or income — a resolved debt is not an income row.</p>
+      <dl>
+        <dt>Components</dt><dd><code>SectionList</code> with two sections, <strong>Open</strong> and <strong>Archived (n)</strong>. Same <code>ReanimatedSwipeable</code> rows and undo toast as Income. Archived is collapsed by default; its header is a <code>Pressable</code> with the rotated chevron from the filter sheet.</dd>
+        <dt>Data</dt><dd><code>fetchDebts(userId)</code> from <code>finance_debts</code> — same table the web Debts sub-view writes to, so both stay in sync with no extra backend. Row: <code>id, date, person, detail, amount, resolved, resolvedAt</code>.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li><strong>Still owed</strong> = sum of open amounts, green. Reads <code>$0.00</code> in ink3 when nothing is open. Right side counts open rows.</li>
+          <li>Open rows sort oldest-first so the stalest debt is on top; archived rows sort newest-resolved-first.</li>
+          <li>Row tap → edit sheet (B15). Name, what-for and amount are all editable there, matching the web page which is gaining inline editing on the same fields.</li>
+          <li><strong>Swipe right</strong> → <strong>Resolve</strong> (moss, check icon) on an open row; <strong>Reopen</strong> on an archived one. One gesture, no sheet, <code>Haptics.selectionAsync()</code>. Sets <code>resolved</code> and <code>resolvedAt = today</code> / <code>null</code>.</li>
+          <li><strong>Swipe left</strong> → <strong>Delete</strong> with the 4 s undo toast, same as income.</li>
+          <li>Archived rows: person struck through in ink3, subline <code>detail · Resolved dateLabel(resolvedAt)</code>, amount in ink3.</li>
+          <li>FAB → add debt (B14). Pull to refresh.</li>
+        </ul></dd>
+        <dt>Empty state</dt><dd>“Nobody owes you anything” / “Add a debt and it'll sit here until it's paid back.” with <strong>Add debt</strong>. Only when both sections are empty — an empty Open with an Archived section just shows the stat at <code>$0.00</code>.</dd>
+        <dt>Entry</dt><dd>B1's wide stat gets a second quiet link, <strong>Debts →</strong>, beside <strong>Income →</strong>. That is the only change to the ledger screen.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b14">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><span class="iconbtn"><svg><use href="#i-back"></use></svg></span><h1 class="sm">Debts</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:14px;opacity:.5"><div class="stat wide"><div><div class="l">Still owed</div><div class="v pos">$185.00</div></div></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>New debt</h2>
+            <div class="input big focus" style="margin:6px 0 16px">$<span style="flex:1;text-align:right;color:var(--a-green)">45.00</span></div>
+            <div class="field"><label>Who</label><div class="input">Sarah</div>
+              <div class="chips" style="padding-top:8px;padding-bottom:0;margin-bottom:0"><span class="chip">Kevin</span><span class="chip">Mum</span><span class="chip">Josh</span></div>
+            </div>
+            <div class="field"><label>What for</label><div class="input ph">Optional</div></div>
+            <div class="field" style="margin-bottom:18px"><label>Date</label><div class="input" style="justify-content:space-between">Today<svg width="15" height="15" style="color:var(--a-ink3)"><use href="#i-chev-d"></use></svg></div></div>
+            <a href="#b13" class="btn pri" style="text-decoration:none">Add debt</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B14</b> Add debt</p>
+    </div>
+    <div class="spec">
+      <h3>Add debt</h3>
+      <p class="route">presented over app/(tabs)/finance/debts.tsx</p>
+      <p class="what">A clone of Add income (B10) with the salary switch removed and a second text field. Amount first and focused, because that is the one thing you always know; the name is one word and the reason is often left blank.</p>
+      <dl>
+        <dt>Components</dt><dd>Bottom sheet, <code>components/sheets/DebtSheet.tsx</code>. Amount is <code>decimal-pad</code>, green, right-aligned, <code>autoFocus</code>. <strong>Who</strong> and <strong>What for</strong> are plain <code>TextInput</code>s. Date is the existing <code>DateField</code>, defaulting to today.</dd>
+        <dt>Data</dt><dd><code>insertDebt(userId, { date, person, detail, amount, resolved: false, resolvedAt: null })</code>. Amount rounded to cents before insert, same as web.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Recent distinct <code>person</code> values appear as chips under <strong>Who</strong> once there are three or more — the same people keep owing you.</li>
+          <li><strong>Add debt</strong> disabled until amount &gt; 0 and <strong>Who</strong> is non-empty. <strong>What for</strong> is optional.</li>
+          <li>Optimistic insert with local id swapped for the server id, rollback with “Couldn't save that debt. Tap to retry.” on failure — the <code>saveIncome</code> path.</li>
+        </ul></dd>
+        <dt>Copy</dt><dd>“Who”, not “Person” or “From”. “What for”, placeholder “Optional”.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="block" id="b15">
+    <div>
+      <div class="frame"><div class="screen">
+        <div class="sb"><span>9:41</span><span class="ind"><span class="bars"><s></s><s></s><s></s><s></s></span><i></i></span></div>
+        <div class="navbar brd"><span class="iconbtn"><svg><use href="#i-back"></use></svg></span><h1 class="sm">Debts</h1><span class="iconbtn"></span></div>
+        <div class="body">
+          <div class="scroll" style="padding-top:14px;opacity:.5"><div class="stat wide"><div><div class="l">Still owed</div><div class="v pos">$185.00</div></div></div></div>
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <h2>Sarah</h2>
+            <p class="sub">Added Wed 2 Sep</p>
+            <div class="input big" style="margin-bottom:16px">$<span style="flex:1;text-align:right;color:var(--a-green)">45.00</span></div>
+            <div class="field"><label>Who</label><div class="input">Sarah</div></div>
+            <div class="field"><label>What for</label><div class="input">Dinner at Chin Chin</div></div>
+            <div class="field" style="margin-bottom:16px"><label>Date</label><div class="input" style="justify-content:space-between">Wed 2 Sep<svg width="15" height="15" style="color:var(--a-ink3)"><use href="#i-chev-d"></use></svg></div></div>
+            <div class="btnrow"><div class="btn dan" style="flex:0 0 96px">Delete</div><a href="#b13" class="btn pri" style="text-decoration:none">Save changes</a></div>
+            <a href="#b13" class="btn lnk" style="text-decoration:none;margin-top:6px">Mark resolved</a>
+          </div>
+        </div>
+        <div class="homebar" style="z-index:8"></div>
+      </div></div>
+      <p class="cap"><b>B15</b> Edit debt</p>
+    </div>
+    <div class="spec">
+      <h3>Edit debt</h3>
+      <p class="route">presented over app/(tabs)/finance/debts.tsx</p>
+      <p class="what">Same sheet as B14 in edit mode. Every field — who, what for, amount, date — is editable at once, so it commits on <strong>Save changes</strong> rather than per keystroke, exactly like Edit income (B11).</p>
+      <dl>
+        <dt>Data</dt><dd><code>updateDebt(id, changes)</code> — only changed keys are sent. <code>resolvedAt → resolved_at</code> mapping lives in <code>db.ts</code>.</dd>
+        <dt>Behaviour</dt><dd><ul>
+          <li>Header shows the person and “Added dateLabel(date)”. For an archived debt the subline reads “Resolved dateLabel(resolvedAt)” instead.</li>
+          <li><strong>Mark resolved</strong> link under the buttons (reads <strong>Reopen</strong> on an archived debt) does the same thing as the swipe, for people who never discover swipes. Closes the sheet.</li>
+          <li><strong>Delete</strong> confirms via <code>Alert</code>, closes the sheet, removes the row with an undo toast.</li>
+          <li>Dismissing with unsaved edits saves them — the app already does this for every sheet (see “Save pending sheet edits before dismissal”).</li>
+        </ul></dd>
       </dl>
     </div>
   </article>
@@ -2269,7 +2405,8 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
 │       ├── finance/
 │       │   ├── index.tsx         B1, B2
 │       │   ├── insights.tsx      B8
-│       │   └── income.tsx        B9
+│       │   ├── income.tsx        B9
+│       │   └── debts.tsx         B13
 │       ├── habits/
 │       │   ├── index.tsx         C1, C2, C3, C7
 │       │   └── archived.tsx      C6
@@ -2277,7 +2414,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
 │           ├── index.tsx         D1, D2, D6, D9
 │           └── pillars.tsx       D7
 ├── components/
-│   ├── sheets/                   B3–B7, B10, B11, C4, C5, D3–D5, D8
+│   ├── sheets/                   B3–B7, B10, B11, B14, B15, C4, C5, D3–D5, D8
 │   ├── LedgerRow.tsx             swipeable expense row
 │   ├── HabitCheck.tsx            3 check states + spring
 │   ├── IdeaCard.tsx
@@ -2310,6 +2447,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code
       <dt>3 · Habits</dt><dd>Week strip, today card, the three check states, back-fill, add/actions sheets, archived. <strong>Done when</strong> a Tuesday tick made on Saturday shows on Tuesday in the web grid — that's the one place the <code>(weekStart, dayIndex)</code> mapping can quietly go wrong. C1–C7.</dd>
       <dt>4 · Content</dt><dd>Idea cards, pillar chips, detail and stage sheets, pillar management, then reorder mode last since it's the only piece needing Reanimated gestures. <strong>Done when</strong> a drag on the phone and a drag on the web produce the same order. D1–D9.</dd>
       <dt>5 · Trim</dt><dd>Insights charts, income screen, converter, event markers, every empty state, haptics, the reduce-motion checks. These are all real, and none of them blocks daily use. B7–B12.</dd>
+      <dt>6 · Debts</dt><dd>Added after the first handoff. Types, <code>db.ts</code>, actions with tests, <code>DebtSheet</code>, then the screen and the <strong>Debts →</strong> link. <strong>Done when</strong> a debt resolved on the phone shows under Archived on the web. B13–B15. Brief: <code>mobile/DEBTS.md</code>.</dd>
     </dl>
     <div class="warn"><b>Worth writing tests for, even in a personal app:</b> the habit week mapping (<code>dateFromWeekStartAndDay</code> ↔ <code>weekStartAndDayFromDate</code>), <code>sort_order</code> around event <code>end</code> rows, and the currency conversion. Everything else is visible the moment you look at the screen; those three fail silently.</div>
   </div>
