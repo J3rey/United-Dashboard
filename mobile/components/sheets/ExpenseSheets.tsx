@@ -1,5 +1,5 @@
 import { Alert } from '../../lib/alert';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { LayoutAnimation, Text, View } from 'react-native';
 import { Button, Categories, Chip, DateField, EditRow, Field, IconButton, Sheet, ui } from '../ui';
 import { colors, numbers, type } from '../../theme';
@@ -33,13 +33,27 @@ export function ExpenseDetailSheet({ expense, event, onClose }: { expense: Expen
   const [editing, setEditing] = useState<'amount' | 'category' | 'split' | 'detail' | 'date' | null>(null);
   const [amount, setAmount] = useState(String(expense.cost)), [detail, setDetail] = useState(expense.detail), [person, setPerson] = useState(expense.person), [split, setSplit] = useState(expense.type);
   const update = async (changes: Parameters<typeof actions.editExpense>[1]) => { if (await actions.editExpense(expense.id, changes)) setEditing(null); };
-  return <Sheet title={expense.detail || 'Expense'} subtitle={`${expense.cat} · ${dateLabel(expense.date, false)}${event ? ` · during ${event}` : ''}`} onClose={onClose}>
-    {editing === 'amount' ? <Field label="Amount" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" autoFocus style={numbers} onBlur={() => { const cost = Number(amount); if (Number.isFinite(cost) && cost > 0 && cost !== expense.cost) void update({ cost: Math.round(cost * 100) / 100 }); }}/>: <EditRow label="Amount" value={money(expense.cost)} onPress={() => setEditing('amount')}/>}
-    {editing === 'detail' ? <Field label="What was it" value={detail} onChangeText={setDetail} autoFocus onBlur={() => { if (detail.trim() !== expense.detail) void update({ detail: detail.trim() }); }}/>: <EditRow label="What was it" value={expense.detail} onPress={() => setEditing('detail')}/>}
+  const saved = useRef({ cost: expense.cost, detail: expense.detail, person: expense.person }), pending = useRef<Promise<boolean> | null>(null);
+  async function saveDraft() {
+    if (pending.current && !await pending.current) return false;
+    const changes: Parameters<typeof actions.editExpense>[1] = {};
+    const cost = Math.round(Number(amount) * 100) / 100;
+    if (Number.isFinite(cost) && cost > 0 && cost !== saved.current.cost) changes.cost = cost;
+    if (detail.trim() !== saved.current.detail) changes.detail = detail.trim();
+    if (split !== 'normal' && person.trim() !== saved.current.person) changes.person = person.trim();
+    if (!Object.keys(changes).length) return true;
+    const request = actions.editExpense(expense.id, changes).then(ok => { if (ok) saved.current = { ...saved.current, ...changes }; return ok; });
+    pending.current = request;
+    try { return await request; } finally { if (pending.current === request) pending.current = null; }
+  }
+  const close = async (done = onClose) => { if (await saveDraft()) done(); };
+  return <Sheet title={expense.detail || 'Expense'} subtitle={`${expense.cat} · ${dateLabel(expense.date, false)}${event ? ` · during ${event}` : ''}`} onClose={onClose} confirmClose={done => { void close(done); }}>
+    {editing === 'amount' ? <Field label="Amount" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" autoFocus style={numbers} onBlur={async () => { if (await saveDraft()) setEditing(null); }}/>: <EditRow label="Amount" value={money(expense.cost)} onPress={() => setEditing('amount')}/>}
+    {editing === 'detail' ? <Field label="What was it" value={detail} onChangeText={setDetail} autoFocus onBlur={async () => { if (await saveDraft()) setEditing(null); }}/>: <EditRow label="What was it" value={expense.detail} onPress={() => setEditing('detail')}/>}
     {editing === 'category' ? <Categories selected={[expense.cat]} onPress={cat => { void update({ cat }); }}/> : <EditRow label="Category" value={expense.cat} onPress={() => setEditing('category')}/>}
     {editing === 'date' ? <DateField value={expense.date} onChange={date => { void update({ date }); }}/> : <EditRow label="Date" value={dateLabel(expense.date)} onPress={() => setEditing('date')}/>}
-    {editing === 'split' ? <><View style={ui.wrap}>{([['normal','Just me'],['paid','Someone paid'],['for','I paid for']] as const).map(([value,label]) => <Chip key={value} label={label} selected={split === value} onPress={() => { setSplit(value); if (value === 'normal') { setPerson(''); void actions.editExpense(expense.id, { type: value, person: '' }); } else void actions.editExpense(expense.id, { type: value }); }}/>)}</View>{split !== 'normal' && <Field label={split === 'paid' ? 'Who paid' : 'Who it was for'} value={person} onChangeText={setPerson} onBlur={() => { void update({ person: person.trim() }); }}/>}</> : <EditRow label="Split" value={expense.type === 'normal' ? 'Just me' : `${expense.person} ${expense.type === 'paid' ? 'paid' : 'paid for'}`} onPress={() => setEditing('split')}/>}
-    <Button label="Done" onPress={onClose}/><Button label="Delete" tone="danger" disabled={actions.busy} onPress={() => Alert.alert('Delete expense?', 'You can undo this for four seconds.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => { actions.deleteExpense(expense.id); onClose(); } }])}/>
+    {editing === 'split' ? <><View style={ui.wrap}>{([['normal','Just me'],['paid','Someone paid'],['for','I paid for']] as const).map(([value,label]) => <Chip key={value} label={label} selected={split === value} onPress={() => { setSplit(value); if (value === 'normal') { setPerson(''); void actions.editExpense(expense.id, { type: value, person: '' }); } else void actions.editExpense(expense.id, { type: value }); }}/>)}</View>{split !== 'normal' && <Field label={split === 'paid' ? 'Who paid' : 'Who it was for'} value={person} onChangeText={setPerson} onBlur={async () => { if (await saveDraft()) setEditing(null); }}/>}</> : <EditRow label="Split" value={expense.type === 'normal' ? 'Just me' : `${expense.person} ${expense.type === 'paid' ? 'paid' : 'paid for'}`} onPress={() => setEditing('split')}/>}
+    <Button label="Done" disabled={actions.busy} onPress={() => { void close(); }}/><Button label="Delete" tone="danger" disabled={actions.busy} onPress={() => Alert.alert('Delete expense?', 'You can undo this for four seconds.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => { actions.deleteExpense(expense.id); onClose(); } }])}/>
   </Sheet>;
 }
 export function FilterSheet({ month, categories, wholeYear, onApply, onClose }: { month: string; categories: Category[]; wholeYear: boolean; onApply: (month: string, cats: Category[], wholeYear: boolean) => void; onClose: () => void }) {

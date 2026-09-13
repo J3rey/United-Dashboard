@@ -1,5 +1,5 @@
 import { Alert } from '../../lib/alert';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Button, Chip, EditRow, Field, IconButton, Sheet, ui } from '../ui';
 import { useActions } from '../../hooks/useActions';
@@ -13,8 +13,18 @@ export function AddHabitSheet({onClose}:{onClose:()=>void}) {
 }
 export function HabitActionsSheet({habit,count,onClose}:{habit:Habit;count:number;onClose:()=>void}) {
  const actions=useActions(),[editing,setEditing]=useState<'name'|'goal'|null>(null),[name,setName]=useState(habit.name),[goal,setGoal]=useState(habit.goal);
- return <Sheet title={habit.name} subtitle={`${habit.daily?'Every day':`${habit.goal} times a week`} · ${count} of ${habit.daily?7:habit.goal} done`} onClose={onClose}>
- {editing==='name'?<Field label="Rename" autoFocus value={name} onChangeText={setName} onBlur={async()=>{if(name.trim()&&name.trim()!==habit.name)await actions.editHabit(habit.id,{name:name.trim()});setEditing(null);}}/>:<EditRow label="Rename" value="" onPress={()=>setEditing('name')}/>}
+ const saved=useRef(habit.name),pending=useRef<Promise<boolean>|null>(null);
+ async function saveDraft() {
+  if(pending.current&&!await pending.current)return false;
+  const value=name.trim();
+  if(!value||value===saved.current)return true;
+  const request=actions.editHabit(habit.id,{name:value}).then(ok=>{if(ok)saved.current=value;return ok;});
+  pending.current=request;
+  try{return await request;}finally{if(pending.current===request)pending.current=null;}
+ }
+ const close=async(done=onClose)=>{if(await saveDraft())done();};
+ return <Sheet title={habit.name} subtitle={`${habit.daily?'Every day':`${habit.goal} times a week`} · ${count} of ${habit.daily?7:habit.goal} done`} onClose={onClose} confirmClose={done=>{void close(done);}}>
+ {editing==='name'?<Field label="Rename" autoFocus value={name} onChangeText={setName} onBlur={async()=>{if(await saveDraft())setEditing(null);}}/>:<EditRow label="Rename" value="" onPress={()=>setEditing('name')}/>}
  {!habit.daily&&(editing==='goal'?<><GoalStepper value={goal} onChange={setGoal}/><Button label="Set goal" disabled={actions.busy} onPress={async()=>{if(await actions.editHabit(habit.id,{goal}))setEditing(null);}}/></>:<EditRow label="Change goal" value={`${habit.goal} a week`} onPress={()=>setEditing('goal')}/>)}
- <Button label="Archive" tone="quiet" disabled={actions.busy} onPress={()=>{actions.archiveHabit(habit.id);onClose();}}/><Button label="Delete habit" tone="danger" disabled={actions.busy} onPress={()=>confirmDeleteHabit(habit,async()=>{if(await actions.deleteHabit(habit.id))onClose();})}/><Button label="Cancel" tone="quiet" onPress={onClose}/></Sheet>;
+ <Button label="Archive" tone="quiet" disabled={actions.busy} onPress={async()=>{if(await saveDraft()){actions.archiveHabit(habit.id);onClose();}}}/><Button label="Delete habit" tone="danger" disabled={actions.busy} onPress={()=>confirmDeleteHabit(habit,async()=>{if(await actions.deleteHabit(habit.id))onClose();})}/><Button label="Cancel" tone="quiet" disabled={actions.busy} onPress={()=>{void close();}}/></Sheet>;
 }
