@@ -8,7 +8,6 @@ import { colors, fonts, numbers, type } from '../theme';
 import { dateLabel, dateString } from '../lib/format';
 import { CATS, CAT_COLORS, type Category } from '../lib/constants';
 import { useActions } from '../hooks/useActions';
-import { useReducedMotion } from '../hooks/useReducedMotion';
 import { Icon, type IconName } from './Icon';
 
 export function Button({ label, onPress, disabled, tone = 'primary' }: { label: string; onPress: () => void; disabled?: boolean; tone?: 'primary' | 'quiet' | 'danger' }) {
@@ -18,20 +17,19 @@ export function IconButton({ name, label, onPress, disabled }: { name: IconName;
   return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: Boolean(disabled) }} disabled={disabled} onPress={onPress} style={({ pressed }) => [ui.iconButton, (pressed || disabled) && ui.dim]}><Icon name={name}/></Pressable>;
 }
 export function Chip({ label, selected, onPress, color = colors.ink }: { label: string; selected?: boolean; onPress: () => void; color?: string }) {
-  return <Pressable accessibilityRole="button" aria-pressed={selected} accessibilityState={{ selected: Boolean(selected) }} onPress={onPress} style={[ui.chip, selected && { backgroundColor: color, borderColor: color }]}><Text numberOfLines={1} style={[ui.chipText, numbers, selected && ui.white]}>{label}</Text></Pressable>;
+  return <Pressable accessibilityRole="button" aria-pressed={selected} accessibilityState={{ selected: Boolean(selected) }} onPress={onPress} style={({ pressed }) => [ui.chip, selected && { backgroundColor: color, borderColor: color }, pressed && ui.dim]}><Text numberOfLines={1} style={[ui.chipText, numbers, selected && ui.white]}>{label}</Text></Pressable>;
 }
 export function Sheet({ title, subtitle, children, onClose, confirmClose }: { title: string; subtitle?: string; children: ReactNode; onClose: () => void; confirmClose?: (close: () => void) => void }) {
   const actions = useActions();
   const modal = useRef<BottomSheetModal>(null);
   const allowed = useRef(false);
   const insets = useSafeAreaInsets();
-  const reduced = useReducedMotion();
   const { height } = useWindowDimensions();
   const close = () => { allowed.current = true; modal.current?.dismiss(); };
   const requestClose = () => confirmClose ? confirmClose(close) : close();
   useEffect(() => { modal.current?.present(); return () => modal.current?.dismiss(); }, []);
   useEffect(() => { const listener = BackHandler.addEventListener('hardwareBackPress', () => { requestClose(); return true; }); return () => listener.remove(); });
-  return <BottomSheetModal ref={modal} stackBehavior="push" accessible={false} accessibilityRole="none" accessibilityLabel={title} enableDynamicSizing maxDynamicContentSize={(height - insets.top) * 0.9} enablePanDownToClose keyboardBehavior="interactive" android_keyboardInputMode="adjustResize" overrideReduceMotion={reduced ? ReduceMotion.Always : ReduceMotion.Never} backgroundStyle={ui.sheet} handleIndicatorStyle={ui.handle} backdropComponent={props => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.4} pressBehavior="none" onPress={requestClose}/>} onDismiss={() => {
+  return <BottomSheetModal ref={modal} stackBehavior="push" accessible={false} accessibilityRole="none" accessibilityLabel={title} enableDynamicSizing maxDynamicContentSize={(height - insets.top) * 0.9} enablePanDownToClose keyboardBehavior="interactive" android_keyboardInputMode="adjustResize" overrideReduceMotion={ReduceMotion.System} backgroundStyle={ui.sheet} handleIndicatorStyle={ui.handle} backdropComponent={props => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.4} pressBehavior="none" onPress={requestClose}/>} onDismiss={() => {
     if (confirmClose && !allowed.current) { modal.current?.present(); confirmClose(close); }
     else onClose();
   }}>
@@ -67,7 +65,7 @@ export const ui = StyleSheet.create({
   button: { minHeight: 50, minWidth: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, marginVertical: 4 }, primary: { backgroundColor: colors.moss }, danger: { borderWidth: 1, borderColor: colors.errorBorder },
   buttonText: { ...numbers, fontFamily: fonts.semibold, fontSize: 15, color: colors.ink2 }, white: { color: colors.surface }, red: { color: colors.red }, dim: { opacity: 0.5 },
   iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  chip: { minHeight: 44, minWidth: 44, justifyContent: 'center', paddingHorizontal: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, borderRadius: 999, maxWidth: 220 }, chipText: { fontFamily: fonts.medium, fontSize: 12.5, color: colors.ink2 },
+  chip: { height: 44, minWidth: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, borderRadius: 999, maxWidth: 220 }, chipText: { fontFamily: fonts.medium, fontSize: 12.5, color: colors.ink2 },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 26, borderTopRightRadius: 26 }, handle: { backgroundColor: colors.border2, width: 38 }, sheetContent: { paddingHorizontal: 18, paddingTop: 2 }, subtitle: { marginBottom: 16, lineHeight: 18 },
   field: { marginBottom: 13 }, label: { fontFamily: fonts.medium, fontSize: 12, color: colors.ink2, marginBottom: 5 }, input: { minHeight: 48, borderWidth: 1, borderColor: colors.border2, backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontFamily: fonts.regular, fontSize: 16, color: colors.ink },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 13 }, category: { width: '23%', minHeight: 56, borderWidth: 1, borderColor: colors.border, borderRadius: 11, padding: 5, alignItems: 'center', justifyContent: 'center', gap: 5 }, categorySelected: { borderColor: colors.ink, backgroundColor: colors.surface2 }, categoryText: { fontFamily: fonts.medium, fontSize: 11, color: colors.ink2 }, dot: { width: 15, height: 15, borderRadius: 6 },

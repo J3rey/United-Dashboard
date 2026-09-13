@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PanResponder, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
@@ -26,9 +26,9 @@ function Ring({done,total,past}:{done:number;total:number;past:boolean}) {
 }
 export default function Habits() {
  const router=useRouter(),data=useData(),actions=useActions(),today=dateString(),[selected,setSelected]=useState(today),[add,setAdd]=useState(false),[detailId,setDetailId]=useState<Id|null>(null);
- const habits=data.state.habits.filter(h=>!h.archived),checks=data.state.habitChecks,past=selected!==today;
- const statuses=habits.map(h=>({habit:h,...habitDay(h,selected,data.state.habits,checks)}));
- const sorted=[...statuses].sort((a,b)=>Number(a.habit.daily)-Number(b.habit.daily)||Number(a.satisfied)-Number(b.satisfied));
+ const habits=useMemo(()=>data.state.habits.filter(h=>!h.archived),[data.state.habits]),checks=data.state.habitChecks,past=selected!==today;
+ const statuses=useMemo(()=>habits.map(h=>({habit:h,...habitDay(h,selected,data.state.habits,checks)})),[habits,selected,data.state.habits,checks]);
+ const sorted=useMemo(()=>[...statuses].sort((a,b)=>Number(a.habit.daily)-Number(b.habit.daily)||Number(a.satisfied)-Number(b.satisfied)),[statuses]);
  const done=statuses.filter(h=>h.satisfied).length,detail=data.state.habits.find(h=>h.id===detailId);
  function changeDay(delta:number){const d=new Date(selected+'T12:00:00');d.setDate(d.getDate()+delta);const next=dateString(d),min=new Date(today+'T12:00:00');min.setDate(min.getDate()-84);if(next<=today&&next>=dateString(min))setSelected(next);}
  const swipe=PanResponder.create({onMoveShouldSetPanResponder:(_,g)=>Math.abs(g.dx)>25&&Math.abs(g.dx)>Math.abs(g.dy)*2,onPanResponderRelease:(_,g)=>{if(Math.abs(g.dx)>40)changeDay(g.dx>0?-1:1);}});
