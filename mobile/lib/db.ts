@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Id, Transaction, TransactionRow, TransactionChanges, Income, IncomeChanges, Habit, HabitChanges, Pillar, ContentItem, ContentChanges, AppState, Database } from './types'
+import type { Id, Transaction, TransactionRow, TransactionChanges, Income, IncomeChanges, Debt, DebtChanges, Habit, HabitChanges, Pillar, ContentItem, ContentChanges, AppState, Database } from './types'
 
 function toDs(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -102,6 +102,47 @@ export async function updateIncome(id: Id, changes: IncomeChanges) {
 
 export async function deleteIncome(id: Id) {
   const { error } = await supabase.from('finance_income').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ── Finance: debts ────────────────────────────────────────────────────────────
+
+export async function fetchDebts(userId: string): Promise<Debt[]> {
+  const { data, error } = await supabase
+    .from('finance_debts')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date')
+  if (error) throw error
+  return (data ?? []).map(d => ({
+    id: d.id, date: d.date, person: d.person, detail: d.detail,
+    amount: d.amount, resolved: d.resolved, resolvedAt: d.resolved_at,
+  }))
+}
+
+export async function insertDebt(userId: string, debt: Debt): Promise<Id> {
+  const { data, error } = await supabase
+    .from('finance_debts')
+    .insert({ user_id: userId, date: debt.date, person: debt.person, detail: debt.detail, amount: debt.amount, resolved: debt.resolved, resolved_at: debt.resolvedAt })
+    .select().single()
+  if (error) throw error
+  return data.id
+}
+
+export async function updateDebt(id: Id, changes: DebtChanges) {
+  const mapped: Database['public']['Tables']['finance_debts']['Update'] = {}
+  if ('date' in changes) mapped.date = changes.date
+  if ('person' in changes) mapped.person = changes.person
+  if ('detail' in changes) mapped.detail = changes.detail
+  if ('amount' in changes) mapped.amount = changes.amount
+  if ('resolved' in changes) mapped.resolved = changes.resolved
+  if ('resolvedAt' in changes) mapped.resolved_at = changes.resolvedAt
+  const { error } = await supabase.from('finance_debts').update(mapped).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteDebt(id: Id) {
+  const { error } = await supabase.from('finance_debts').delete().eq('id', id)
   if (error) throw error
 }
 
@@ -234,16 +275,17 @@ export async function deleteContentItem(id: Id) {
 // ── Fetch all on login ────────────────────────────────────────────────────────
 
 export async function fetchAll(userId: string): Promise<AppState> {
-  const [expenses, income, habits, habitChecks, { pillars, content }] =
+  const [expenses, income, debts, habits, habitChecks, { pillars, content }] =
     await Promise.all([
       fetchTransactions(userId),
       fetchIncome(userId),
+      fetchDebts(userId),
       fetchHabits(userId),
       fetchHabitLogs(userId),
       fetchContent(userId),
     ])
   return {
-    events: [], expenses, income,
+    events: [], expenses, income, debts,
     habits, habitChecks, habitWeekOffset: 0,
     pillars, content, contentFilter: 'all',
     nextId: 200,

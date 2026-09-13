@@ -6,7 +6,7 @@ import * as db from '../lib/db';
 import { useAuth } from './useAuth';
 
 const emptyUserState: AppState = {
-  ...defaultState, events: [], expenses: [], income: [], habits: [], habitChecks: {}, pillars: [], content: [],
+  ...defaultState, events: [], expenses: [], income: [], debts: [], habits: [], habitChecks: {}, pillars: [], content: [],
 };
 
 export function useAppData(user: User | null | undefined) {

@@ -4,8 +4,9 @@ import { useAuth } from './useAuth';
 import { useData } from './useAppData';
 import * as db from '../lib/db';
 import * as native from '../lib/nativeDb';
+import { dateString } from '../lib/format';
 import { insertByDate, insertExpenseBeforeEnd, sortRowsByDate } from '../lib/finance';
-import type { AppState, ContentChanges, ContentItem, Expense, Habit, HabitChanges, Id, Income, IncomeChanges, Pillar, Transaction, TransactionChanges } from '../lib/types';
+import type { AppState, ContentChanges, ContentItem, Debt, DebtChanges, Expense, Habit, HabitChanges, Id, Income, IncomeChanges, Pillar, Transaction, TransactionChanges } from '../lib/types';
 let nextLocalId = 1000;
 const localId = () => `mobile-${Date.now()}-${nextLocalId++}`;
 function restoreRows<T extends { id: Id }>(current: T[], original: T[], removed: Set<Id>) {
@@ -102,6 +103,23 @@ function useActionState() {
     return commit(s => ({ ...s, income: s.income.map(row => row.id === id ? { ...row, ...changes } : row) }), s => ({ ...s, income: s.income.map(row => row.id === id ? original : row) }), async () => { await db.updateIncome(id, changes); }, 'Couldn’t save that income. Tap to retry.', () => { void editIncome(id, changes); });
   }
   function deleteIncome(id: Id) { const before = stateRef.current.income; delayedDelete('Income deleted', s => ({ ...s, income: s.income.filter(row => row.id !== id) }), s => ({ ...s, income: restoreRows(s.income, before, new Set([id])) }), async () => { await db.deleteIncome(id); }); }
+  async function saveDebt(values: Omit<Debt, 'id'>) {
+    const entry = { ...values, id: localId() };
+    return commit(s => ({ ...s, debts: [...s.debts, entry] }), s => ({ ...s, debts: s.debts.filter(row => row.id !== entry.id) }), async account => {
+      const id = await db.insertDebt(account, entry);
+      if (owner.current === account) data.setState(s => ({ ...s, debts: s.debts.map(row => row.id === entry.id ? { ...row, id } : row) }));
+    }, "Couldn't save that debt. Tap to retry.", () => { void saveDebt(values); });
+  }
+  async function editDebt(id: Id, changes: DebtChanges) {
+    const original = stateRef.current.debts.find(row => row.id === id); if (!original) return false;
+    return commit(s => ({ ...s, debts: s.debts.map(row => row.id === id ? { ...row, ...changes } : row) }), s => ({ ...s, debts: s.debts.map(row => row.id === id ? original : row) }), async () => { await db.updateDebt(id, changes); }, "Couldn't save that debt. Tap to retry.", () => { void editDebt(id, changes); });
+  }
+  async function resolveDebt(id: Id, resolved: boolean) {
+    const ok = await editDebt(id, { resolved, resolvedAt: resolved ? dateString() : null });
+    if (ok) Haptics.selectionAsync();
+    return ok;
+  }
+  function deleteDebt(id: Id) { const before = stateRef.current.debts; delayedDelete('Debt deleted', s => ({ ...s, debts: s.debts.filter(row => row.id !== id) }), s => ({ ...s, debts: restoreRows(s.debts, before, new Set([id])) }), async () => { await db.deleteDebt(id); }); }
   async function saveHabit(values: Omit<Habit, 'id'>) {
     const entry = { ...values, id: localId() }, order = stateRef.current.habits.length;
     return commit(s => ({ ...s, habits: [...s.habits, entry] }), s => ({ ...s, habits: s.habits.filter(row => row.id !== entry.id) }), async account => {
@@ -151,7 +169,7 @@ function useActionState() {
     const before = stateRef.current.pillars;
     return commit(s => ({ ...s, pillars: s.pillars.filter(row => row.id !== id), contentFilter: s.contentFilter === id ? 'all' : s.contentFilter }), s => ({ ...s, pillars: before }), async () => { await db.deletePillar(id); }, 'Couldn’t delete that pillar. Tap to retry.', () => { void deletePillar(id); });
   }
-  return { busy, failure, clearFailure: () => setFailure(null), undoMessage, undo, saveExpense, editExpense, deleteExpense, saveMarker, saveIncome, editIncome, deleteIncome, saveHabit, editHabit, archiveHabit, deleteHabit, toggleHabit, saveIdea, editIdea, deleteIdea, reorderIdeas, savePillar, deletePillar };
+  return { busy, failure, clearFailure: () => setFailure(null), undoMessage, undo, saveExpense, editExpense, deleteExpense, saveMarker, saveIncome, editIncome, deleteIncome, saveDebt, editDebt, resolveDebt, deleteDebt, saveHabit, editHabit, archiveHabit, deleteHabit, toggleHabit, saveIdea, editIdea, deleteIdea, reorderIdeas, savePillar, deletePillar };
 }
 const Context = createContext<ReturnType<typeof useActionState> | null>(null);
 export function ActionsProvider({ children }: { children: ReactNode }) { const actions = useActionState(); return <Context.Provider value={actions}>{children}</Context.Provider>; }

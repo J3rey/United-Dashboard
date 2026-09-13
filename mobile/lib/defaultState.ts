@@ -35,6 +35,13 @@ export const defaultState: AppState = {
     { id: 2, date: '2025-02-17', source: 'CNY',            amount: 100,    salary: false },
     { id: 3, date: '2025-02-25', source: 'Allied',         amount: 271.73, salary: true  },
   ],
+  debts: [
+    { id: 1, date: '2026-08-18', person: 'Kevin', detail: 'Bali flights', amount: 120, resolved: false, resolvedAt: null },
+    { id: 2, date: '2026-09-02', person: 'Sarah', detail: 'Dinner at Chin Chin', amount: 45, resolved: false, resolvedAt: null },
+    { id: 3, date: '2026-09-12', person: 'Josh', detail: 'Uber home', amount: 20, resolved: false, resolvedAt: null },
+    { id: 4, date: '2026-09-01', person: 'Mum', detail: 'Groceries', amount: 62.4, resolved: true, resolvedAt: '2026-09-04' },
+    { id: 5, date: '2026-07-20', person: 'Kevin', detail: 'Concert ticket', amount: 95, resolved: true, resolvedAt: '2026-07-27' },
+  ],
   habits: [
     { id: 1, name: 'Reach out x2',    type: 'weekly', goal: 2, daily: false },
     { id: 2, name: 'Meet people x2',  type: 'weekly', goal: 2, daily: false },
