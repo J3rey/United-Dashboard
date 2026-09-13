@@ -7,6 +7,7 @@ const emptyUserState = {
   events: [],
   expenses: [],
   income: [],
+  debts: [],
   habits: [],
   habitChecks: {},
   pillars: [],

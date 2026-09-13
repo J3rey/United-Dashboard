@@ -12,6 +12,7 @@ import {
 } from 'chart.js'
 import { CATS, CAT_COLORS, RATES } from '../constants/index.js'
 import * as db from '../services/db.js'
+import Debts from './Debts.jsx'
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
@@ -137,6 +138,7 @@ function CatPopover({ cat, rect, onSelect, onClose }) {
 }
 
 export default function Finance({ state, setState, user, isDemo }) {
+  const [view, setView] = useState('ledger')
   const [activeFilters, setActiveFilters] = useState([])
   const [monthFilter, setMonthFilter] = useState(String(new Date().getMonth() + 1))
   const [yearFilter, setYearFilter]   = useState(new Date().getFullYear())
@@ -504,7 +506,9 @@ export default function Finance({ state, setState, user, isDemo }) {
   monthExpenses.forEach(e => { if (byCat[e.cat] !== undefined) byCat[e.cat] += e.cost })
   const maxCatVal = Math.max(...CATS.map(c => byCat[c]))
 
-  const monthHeading = monthFilter === 'all'
+  const monthHeading = view === 'debts'
+    ? 'Debts'
+    : monthFilter === 'all'
     ? 'All Months'
     : MONTH_NAMES[parseInt(monthFilter) - 1]
 
@@ -514,6 +518,10 @@ export default function Finance({ state, setState, user, isDemo }) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text1)', letterSpacing: '-0.3px' }}>{monthHeading}</div>
           <div style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text3)' }}>{yearFilter}</div>
+          <span style={{ marginLeft: '10px', display: 'inline-flex', gap: '4px' }}>
+            <button className={'filter-btn' + (view === 'ledger' ? ' active' : '')} onClick={() => setView('ledger')}>Ledger</button>
+            <button className={'filter-btn' + (view === 'debts' ? ' active' : '')} onClick={() => setView('debts')}>Debts</button>
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'var(--surface2)', borderRadius: '8px', padding: '3px 4px' }}>
           <button className="btn-ghost" onClick={() => setYearFilter(y => y - 1)} style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '5px' }}>←</button>
@@ -521,6 +529,10 @@ export default function Finance({ state, setState, user, isDemo }) {
           <button className="btn-ghost" onClick={() => setYearFilter(y => y + 1)} style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '5px' }}>→</button>
         </div>
       </div>
+      {view === 'debts' ? (
+        <Debts state={state} setState={setState} user={user} isDemo={isDemo} />
+      ) : (
+      <>
       {/* Top stat cards */}
       <div className="finance-top">
         <div className="stat-card">
@@ -963,6 +975,8 @@ export default function Finance({ state, setState, user, isDemo }) {
           onSelect={cat => updateExpenseCat(catPopover.id, cat)}
           onClose={() => setCatPopover(null)}
         />
+      )}
+      </>
       )}
     </div>
   )

@@ -1715,3 +1715,73 @@ tr.posted-row td {
     min-width: 680px;
   }
 }
+
+/* ===== DEBTS ===== */
+.debt-table {
+  table-layout: fixed;
+  min-width: 520px;
+}
+.debt-col-who { width: 170px; }
+.debt-col-amt { width: 120px; }
+.debt-col-act { width: 150px; }
+.debt-table .r {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.debt-table td.act {
+  text-align: right;
+  white-space: nowrap;
+}
+.debt-add-row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) 120px 150px;
+  align-items: center;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  min-width: 520px;
+}
+.debt-add-row > * {
+  margin: 0 10px;
+}
+.debt-add-row .form-input {
+  width: auto;
+  border: none;
+  border-bottom: 1px dashed var(--border2);
+  border-radius: 0;
+  background: transparent;
+  padding: 6px 0;
+}
+.debt-add-row .form-input:focus {
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+.debt-add-row .btn-primary {
+  justify-self: end;
+  padding: 6px 16px;
+}
+tr.done td {
+  color: var(--text3);
+}
+tr.done td.who {
+  text-decoration: line-through;
+}
+.muted {
+  color: var(--text3);
+  font-size: 12px;
+}
+.tot {
+  font-size: 13px;
+  color: var(--text2);
+}
+.tot b {
+  font-size: 15px;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+.empty {
+  padding: 14px 12px;
+  color: var(--text3);
+  font-size: 13px;
+  font-style: italic;
+}

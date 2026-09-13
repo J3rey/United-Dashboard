@@ -104,6 +104,49 @@ export async function deleteIncome(id) {
   if (error) throw error
 }
 
+// ── Finance: debts ────────────────────────────────────────────────────────────
+
+export async function fetchDebts(userId) {
+  const { data, error } = await supabase
+    .from('finance_debts')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date')
+  if (error) throw error
+  return (data ?? []).map(d => ({
+    id: d.id, date: d.date, person: d.person, detail: d.detail,
+    amount: d.amount, resolved: d.resolved, resolvedAt: d.resolved_at,
+  }))
+}
+
+export async function insertDebt(userId, debt) {
+  const { data, error } = await supabase
+    .from('finance_debts')
+    .insert({
+      user_id: userId, date: debt.date, person: debt.person, detail: debt.detail,
+      amount: debt.amount, resolved: debt.resolved ?? false, resolved_at: debt.resolvedAt ?? null,
+    })
+    .select().single()
+  if (error) throw error
+  return data.id
+}
+
+export async function updateDebt(id, changes) {
+  const mapped = {}
+  if ('person'     in changes) mapped.person = changes.person
+  if ('detail'     in changes) mapped.detail = changes.detail
+  if ('amount'     in changes) mapped.amount = changes.amount
+  if ('resolved'   in changes) mapped.resolved = changes.resolved
+  if ('resolvedAt' in changes) mapped.resolved_at = changes.resolvedAt
+  const { error } = await supabase.from('finance_debts').update(mapped).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteDebt(id) {
+  const { error } = await supabase.from('finance_debts').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ── Habits ────────────────────────────────────────────────────────────────────
 
 export async function fetchHabits(userId) {
@@ -233,16 +276,17 @@ export async function deleteContentItem(id) {
 // ── Fetch all on login ────────────────────────────────────────────────────────
 
 export async function fetchAll(userId) {
-  const [expenses, income, habits, habitChecks, { pillars, content }] =
+  const [expenses, income, debts, habits, habitChecks, { pillars, content }] =
     await Promise.all([
       fetchTransactions(userId),
       fetchIncome(userId),
+      fetchDebts(userId),
       fetchHabits(userId),
       fetchHabitLogs(userId),
       fetchContent(userId),
     ])
   return {
-    events: [], expenses, income,
+    events: [], expenses, income, debts,
     habits, habitChecks, habitWeekOffset: 0,
     pillars, content, contentFilter: 'all',
     nextId: 200,
