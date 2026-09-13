@@ -29,7 +29,7 @@ export function Sheet({ title, subtitle, children, onClose, confirmClose }: { ti
   const requestClose = () => confirmClose ? confirmClose(close) : close();
   useEffect(() => { modal.current?.present(); return () => modal.current?.dismiss(); }, []);
   useEffect(() => { const listener = BackHandler.addEventListener('hardwareBackPress', () => { requestClose(); return true; }); return () => listener.remove(); });
-  return <BottomSheetModal ref={modal} stackBehavior="push" accessible={false} accessibilityRole="none" accessibilityLabel={title} enableDynamicSizing maxDynamicContentSize={(height - insets.top) * 0.9} enablePanDownToClose keyboardBehavior="interactive" android_keyboardInputMode="adjustResize" overrideReduceMotion={ReduceMotion.System} backgroundStyle={ui.sheet} handleIndicatorStyle={ui.handle} backdropComponent={props => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.4} pressBehavior="none" onPress={requestClose}/>} onDismiss={() => {
+  return <BottomSheetModal ref={modal} stackBehavior="push" accessible={false} accessibilityRole="none" accessibilityLabel={title} enableDynamicSizing maxDynamicContentSize={(height - insets.top) * 0.9} enablePanDownToClose enableContentPanningGesture={Platform.OS !== 'web'} keyboardBehavior="interactive" android_keyboardInputMode="adjustResize" overrideReduceMotion={ReduceMotion.System} backgroundStyle={ui.sheet} handleIndicatorStyle={ui.handle} backdropComponent={props => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.4} pressBehavior="none" onPress={requestClose}/>} onDismiss={() => {
     if (confirmClose && !allowed.current) { modal.current?.present(); confirmClose(close); }
     else onClose();
   }}>
