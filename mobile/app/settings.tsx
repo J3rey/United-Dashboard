@@ -1,8 +1,8 @@
 import { Alert } from '../lib/alert';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useIsFocused, useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useAppData';
@@ -13,6 +13,7 @@ import { colors, fonts, numbers, type } from '../theme';
 
 export default function Settings() {
   const router = useRouter();
+  const focused = useIsFocused();
   const insets = useSafeAreaInsets();
   const auth = useAuth();
   const data = useData();
@@ -44,7 +45,7 @@ export default function Settings() {
       <Icon name={icon}/><Text style={styles.rowLabel}>{label}</Text>{value && <Text style={styles.value}>{value}</Text>}<Icon name="chevron" size={16} color={colors.ink3}/>
     </View>;
   }
-  return <View style={styles.screen}>
+  return <View aria-hidden={!focused} style={[styles.screen, Platform.OS === 'web' && !focused && {display: 'none'}]}>
     <View style={[styles.header, { paddingTop: insets.top }]}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/finance')} style={styles.headerButton}><Icon name="back"/></Pressable>
       <Text style={type.screenTitle}>Settings</Text><View style={styles.headerButton}/>
@@ -63,8 +64,8 @@ export default function Settings() {
       <Text style={styles.groupLabel}>Tools</Text>
       <View style={styles.group}>
         {toolRow('Currency converter', 'swap', () => router.push('/converter'))}
-        {toolRow('Archived habits', 'archive', () => router.push('/habits/archived'), String(data.state.habits.filter(habit => habit.archived).length))}
-        {toolRow('Content pillars', 'film', () => router.push('/content/pillars'), String(data.state.pillars.length))}
+        {toolRow('Archived habits', 'archive', () => router.push({pathname:'/habits/archived',params:{from:'settings'}}), String(data.state.habits.filter(habit => habit.archived).length))}
+        {toolRow('Content pillars', 'film', () => router.push({pathname:'/content/pillars',params:{from:'settings'}}), String(data.state.pillars.length))}
       </View>
       <Text style={styles.groupLabel}>Finance</Text>
       <View style={styles.group}>

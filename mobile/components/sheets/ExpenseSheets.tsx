@@ -1,7 +1,7 @@
 import { Alert } from '../../lib/alert';
 import { useState } from 'react';
 import { LayoutAnimation, Text, View } from 'react-native';
-import { Button, Categories, Chip, DateField, EditRow, Field, Sheet, ui } from '../ui';
+import { Button, Categories, Chip, DateField, EditRow, Field, IconButton, Sheet, ui } from '../ui';
 import { colors, numbers, type } from '../../theme';
 import { useData } from '../../hooks/useAppData';
 import { useActions } from '../../hooks/useActions';
@@ -47,6 +47,6 @@ export function FilterSheet({ month, categories, wholeYear, onApply, onClose }: 
   const { state } = useData();
   const count = state.expenses.filter(row => !row.isHeader && !row.isEnd && row.date.startsWith(year ? draftMonth.slice(0,4) : draftMonth) && (!cats.length || cats.includes(row.cat))).length;
   const move = (direction: number) => { const date = new Date(draftMonth + '-01T12:00:00'); date.setMonth(date.getMonth() + direction); setMonth(dateString(date).slice(0,7)); };
-  return <Sheet title="Filter" onClose={onClose}><Button label="Reset" tone="quiet" onPress={() => { setMonth(dateString().slice(0,7)); setCats([]); setYear(false); }}/><Text style={ui.label}>Month</Text><View style={ui.line}><Button label="‹" tone="quiet" onPress={() => move(-1)}/><Text style={[type.body,numbers,ui.flex,{ textAlign:'center' }]}>{monthLabel(draftMonth)}</Text><Button label="›" tone="quiet" onPress={() => move(1)}/></View><View style={ui.line}><Chip label="This month" selected={!year && draftMonth === dateString().slice(0,7)} onPress={() => { setMonth(dateString().slice(0,7)); setYear(false); }}/><Chip label="Whole year" selected={year} onPress={() => setYear(true)}/></View><Text style={[ui.label,{ marginTop: 16 }]}>Categories</Text><Categories selected={cats} onPress={cat => setCats(cats.includes(cat) ? cats.filter(c => c !== cat) : [...cats,cat])}/><Button label={`Show ${count} expense${count === 1 ? '' : 's'}`} onPress={() => { onApply(draftMonth,cats,year); onClose(); }}/></Sheet>;
+  return <Sheet title="Filter" onClose={onClose}><Button label="Reset" tone="quiet" onPress={() => { setMonth(dateString().slice(0,7)); setCats([]); setYear(false); }}/><Text style={ui.label}>Month</Text><View style={ui.line}><IconButton name="back" label="Previous month" onPress={() => move(-1)}/><Text style={[type.body,numbers,ui.flex,{ textAlign:'center' }]}>{monthLabel(draftMonth)}</Text><IconButton name="chevron" label="Next month" onPress={() => move(1)}/></View><View style={ui.line}><Chip label="This month" selected={!year && draftMonth === dateString().slice(0,7)} onPress={() => { setMonth(dateString().slice(0,7)); setYear(false); }}/><Chip label="Whole year" selected={year} onPress={() => setYear(true)}/></View><Text style={[ui.label,{ marginTop: 16 }]}>Categories</Text><Categories selected={cats} onPress={cat => setCats(cats.includes(cat) ? cats.filter(c => c !== cat) : [...cats,cat])}/><Button label={`Show ${count} expense${count === 1 ? '' : 's'}`} onPress={() => { onApply(draftMonth,cats,year); onClose(); }}/></Sheet>;
 }
 

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useIsFocused, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 import { useAuth } from '../../hooks/useAuth';
@@ -10,6 +10,7 @@ import { Icon } from '../../components/Icon';
 
 export default function SignIn() {
   const router = useRouter();
+  const screenFocused = useIsFocused();
   const { login, continueDemo } = useAuth();
   const passwordInput = useRef<TextInput>(null);
   const [email, setEmail] = useState('');
@@ -42,7 +43,7 @@ export default function SignIn() {
     }
   }
 
-  return <SafeAreaView style={styles.screen}>
+  return <SafeAreaView aria-hidden={!screenFocused} style={[styles.screen, Platform.OS === 'web' && !screenFocused && {display: 'none'}]}>
     <KeyboardAvoidingView behavior="padding" style={styles.screen}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets={false}>
         <View style={styles.form}>
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
   brand: { fontFamily: fonts.bold, fontSize: 22, letterSpacing: -0.77, color: colors.ink },
   field: { marginBottom: 13 }, passwordField: { marginBottom: 22 },
   label: { fontFamily: fonts.medium, fontSize: 12, color: colors.ink2, marginBottom: 5 },
-  input: { minHeight: 48, borderWidth: 1, borderColor: colors.border2, backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontFamily: fonts.regular, fontSize: 15.5, color: colors.ink },
+  input: { minHeight: 48, borderWidth: 1, borderColor: colors.border2, backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontFamily: fonts.regular, fontSize: 16, color: colors.ink },
   focused: { borderColor: colors.moss },
   primary: { minHeight: 50, borderRadius: 13, backgroundColor: colors.moss, alignItems: 'center', justifyContent: 'center' },
   primaryText: { fontFamily: fonts.semibold, fontSize: 15.5, letterSpacing: -0.155, color: colors.surface },
