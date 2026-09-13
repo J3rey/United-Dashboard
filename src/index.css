@@ -1763,6 +1763,19 @@ tr.posted-row td {
 tr.done td {
   color: var(--text3);
 }
+.debt-edit {
+  display: inline-block;
+  min-width: 1ch;
+  cursor: text;
+  outline: none;
+  border-bottom: 1px solid transparent;
+}
+.debt-edit:hover {
+  border-bottom-color: var(--border2);
+}
+.debt-edit:focus {
+  border-bottom-color: var(--accent);
+}
 tr.done td.who {
   text-decoration: line-through;
 }

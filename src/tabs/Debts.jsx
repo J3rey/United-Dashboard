@@ -51,6 +51,40 @@ export default function Debts({ state, setState, user, isDemo }) {
     }))
   }
 
+  function commitField(d, field, el) {
+    const raw = el.textContent.trim()
+    let value
+    if (field === 'amount') {
+      const n = parseFloat(raw.replace(/[$,]/g, ''))
+      if (Number.isNaN(n) || n <= 0) { el.textContent = '$' + d.amount.toFixed(2); return }
+      value = Math.round(n * 100) / 100
+      el.textContent = '$' + value.toFixed(2)
+    } else {
+      if (field === 'person' && !raw) { el.textContent = d.person; return }
+      value = raw
+    }
+    if (value === d[field]) return
+    setState(prev => ({
+      ...prev,
+      debts: (prev.debts ?? []).map(x => x.id === d.id ? { ...x, [field]: value } : x),
+    }))
+    if (!isDemo) db.updateDebt(d.id, { [field]: value }).catch(console.error)
+  }
+
+  function editable(d, field, text) {
+    return (
+      <span
+        className="debt-edit"
+        suppressContentEditableWarning contentEditable
+        onKeyDown={ev => {
+          if (ev.key === 'Enter')  { ev.preventDefault(); ev.currentTarget.blur() }
+          if (ev.key === 'Escape') { ev.currentTarget.textContent = text; ev.currentTarget.blur() }
+        }}
+        onBlur={ev => commitField(d, field, ev.currentTarget)}
+      >{text}</span>
+    )
+  }
+
   async function deleteDebt(id) {
     if (!isDemo) {
       try {
@@ -68,9 +102,9 @@ export default function Debts({ state, setState, user, isDemo }) {
   function row(d) {
     return (
       <tr key={d.id} className={d.resolved ? 'done' : ''}>
-        <td className="who">{d.person}</td>
-        <td>{d.detail}</td>
-        <td className="r">${d.amount.toFixed(2)}</td>
+        <td className="who">{editable(d, 'person', d.person)}</td>
+        <td>{editable(d, 'detail', d.detail)}</td>
+        <td className="r">{editable(d, 'amount', '$' + d.amount.toFixed(2))}</td>
         <td className="act">
           <button className="btn-ghost sm" onClick={() => toggleResolved(d)}>{d.resolved ? 'Reopen' : 'Resolve'}</button>{' '}
           <button className="btn-ghost sm" style={{ color: 'var(--text3)' }} onClick={() => deleteDebt(d.id)}>×</button>
