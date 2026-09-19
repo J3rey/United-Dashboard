@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { PILLAR_COLORS } from '../constants/index.js'
 import * as db from '../services/db.js'
 import ContentDrawer from './content/ContentDrawer.jsx'
+import ContentSchedule from './content/ContentSchedule.jsx'
 import { formatPostDate } from '../lib/contentFields.js'
 
 let _nextId = 500
@@ -262,6 +263,7 @@ function SortableContentRow(props) {
 export default function Content({ state, setState, user, isDemo }) {
   const [postedCollapsed, setPostedCollapsed] = useState(true)
   const [openId, setOpenId] = useState(null)
+  const [view, setView] = useState('list')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedColor, setSelectedColor] = useState(0)
   const [newPillarName, setNewPillarName] = useState('')
@@ -445,10 +447,18 @@ export default function Content({ state, setState, user, isDemo }) {
             )
           })}
         </div>
-        <button className="btn-ghost" onClick={() => setModalOpen(true)} style={{ fontSize: '12px' }}>Manage Pillars</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="cs-seg" role="group" aria-label="View">
+            <button type="button" className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>List</button>
+            <button type="button" className={view === 'schedule' ? 'on' : ''} onClick={() => setView('schedule')}>Schedule</button>
+          </div>
+          <button className="btn-ghost" onClick={() => setModalOpen(true)} style={{ fontSize: '12px' }}>Manage Pillars</button>
+        </div>
       </div>
 
-      {/* Content table */}
+      {view === 'schedule' ? (
+        <ContentSchedule items={[...active, ...posted]} pillars={state.pillars} onUpdate={updateContent} onOpen={setOpenId} />
+      ) : (
       <div className="content-table-wrap">
         <DndContext
           sensors={sensors}
@@ -604,6 +614,7 @@ export default function Content({ state, setState, user, isDemo }) {
           </tbody>
         </table>
       </div>
+      )}
 
       {openItem && (
         <ContentDrawer
