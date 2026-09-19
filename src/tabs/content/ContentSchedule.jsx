@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, DragOverlay, PointerSensor, pointerWithin, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core'
 import { PILLAR_COLORS } from '../../constants/index.js'
 import { monthGrid, todayISO, formatPostDate } from '../../lib/contentFields.js'
 
@@ -80,6 +80,7 @@ export default function ContentSchedule({ items, pillars, onUpdate, onOpen }) {
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={pointerWithin}
       onDragStart={({ active }) => { justDragged.current = true; setActiveId(active.id) }}
       onDragEnd={handleDragEnd}
       onDragCancel={() => { setActiveId(null); justDragged.current = false }}
@@ -121,7 +122,7 @@ export default function ContentSchedule({ items, pillars, onUpdate, onOpen }) {
           </div>
         </div>
       </div>
-      <DragOverlay>
+      <DragOverlay dropAnimation={null}>
         {activeItem && <span className="cs-chip cs-chip-overlay" style={chipStyle(activeItem, pillars)}>{activeItem.idea}</span>}
       </DragOverlay>
     </DndContext>
