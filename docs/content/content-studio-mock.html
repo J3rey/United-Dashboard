@@ -1,0 +1,247 @@
+<title>Content Studio Mock</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Single-theme on purpose: mirrors the app's light-only index.css tokens */
+:root{--bg:#f5f3ee;--surface:#fff;--surface2:#f9f8f5;--border:#e5e3dc;--border2:#d4d1c8;--text:#1a1a18;--text2:#6b6960;--text3:#9c9990;--accent:#3b6b3b;--accent-light:#e8f0e8;--red:#c0392b;--amber:#b5720a;--amber-light:#fdf5e6;--blue:#2c5f8a;--blue-light:#edf3f8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"DM Sans",system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow-x:hidden}
+button,select,input,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;min-height:52px;gap:2px;position:sticky;top:env(safe-area-inset-top,0px);z-index:100;flex-wrap:wrap}
+.nav-brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;margin-right:20px;letter-spacing:-.3px}
+.logo{width:22px;height:22px;border-radius:6px;background:var(--accent)}
+.nav-tab{padding:6px 14px;border-radius:6px;font-size:13px;color:var(--text2);border:none;background:none;cursor:pointer}
+.nav-tab.active{background:var(--accent-light);color:var(--accent);font-weight:500}
+.nav-auth{margin-left:auto;font-size:12px;color:var(--text2)}
+.panel{padding:24px;max-width:1300px;margin:0 auto;min-width:0}
+@media(max-width:600px){.panel{padding:16px}nav{padding:0 16px}}
+.mockbar{font-size:12px;color:var(--text3);margin-bottom:14px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pillar-chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid transparent}
+.pillar-chip.selected{border-color:currentColor}
+.right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden}
+.seg button{border:none;background:none;font-size:12px;padding:5px 12px;color:var(--text2);cursor:pointer}
+.seg button.on{background:var(--accent-light);color:var(--accent);font-weight:500}
+.btn-ghost{background:none;border:1px solid var(--border2);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text2);text-decoration:none}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500}
+.wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow-x:auto;overflow-y:hidden}
+table{width:100%;border-collapse:collapse;min-width:760px;table-layout:fixed}
+th{padding:8px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;background:var(--surface2);border-bottom:1px solid var(--border)}
+td{padding:6px 10px;font-size:13px;border-bottom:1px solid var(--border);overflow-wrap:anywhere;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.crow{cursor:pointer}
+tr.crow:hover td{background:var(--surface2)}
+tr.posted td{color:var(--text3)}
+.idea{display:flex;align-items:center;gap:6px}
+.grip{color:var(--border2);font-size:12px;letter-spacing:-2px;cursor:grab}
+.pill{display:inline-block;padding:3px 9px;border-radius:100px;font-size:12px;font-weight:500}
+.status-select{border:none;font-size:12px;cursor:pointer;padding:3px 6px;border-radius:4px;font-weight:500}
+.status-idea{background:#f3eefb;color:#6b4fa0}.status-scripted{background:#edf3f8;color:#2c5f8a}.status-filmed{background:#fdf5e6;color:#b5720a}.status-edited{background:#faeee9;color:#c0502a}.status-posted{background:#eef5f0;color:#2d7a4a}
+.date{font-family:"DM Mono",monospace;font-size:12px;color:var(--text2);white-space:nowrap}
+.date.none{color:var(--text3);font-family:inherit}
+.tags{display:flex;gap:4px}
+.tag{font-family:"DM Mono",monospace;font-size:10px;padding:1px 5px;border-radius:4px;border:1px solid var(--border);color:var(--border2)}
+.tag.on{background:var(--blue-light);color:var(--blue);border-color:transparent}
+.note{font-size:12px;color:var(--text2)}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px}
+.del-btn:hover{color:var(--red)}
+.posted-label{padding:6px 16px;font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;background:var(--surface2);border-top:1px solid var(--border);display:flex;justify-content:space-between;cursor:pointer}
+.addrow td{background:var(--surface2);border-top:1px solid var(--border)}
+.form-input{width:100%;min-width:0;padding:6px 9px;border:1px solid var(--border2);border-radius:6px;font-size:12px;color:var(--text);background:var(--surface)}
+.form-input:focus{border-color:var(--accent);outline:none}
+/* schedule */
+.sched{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media(max-width:860px){.sched{grid-template-columns:minmax(0,1fr)}}
+.calhead{display:flex;align-items:center;gap:8px;padding:12px 16px}
+.calhead b{font-weight:600;font-size:15px;margin-right:auto}
+.dow,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.dow div{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;background:var(--surface2);border-block:1px solid var(--border)}
+.day{min-height:92px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);padding:5px;display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--text2);cursor:pointer}
+.day:nth-child(7n+1){border-left:none}
+.day.pad{background:var(--surface2);cursor:default}
+.day.target:hover{background:var(--accent-light)}
+.day.today .n{background:var(--accent);color:#fff;border-radius:50%;width:20px;height:20px;display:grid;place-items:center}
+.ev{font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;line-height:1.3;cursor:pointer;border:1.5px solid transparent}
+.ev.armed{border-color:currentColor}
+.ev.posted{opacity:.55;text-decoration:line-through}
+@media(max-width:600px){.day{min-height:64px;padding:3px}.ev{font-size:9.5px;padding:1px 3px}}
+.side{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.side h4{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+.side .ev{font-size:12px;padding:5px 8px}
+.side p{font-size:12px;color:var(--text3);line-height:1.4}
+.up{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-top:1px solid var(--border);cursor:pointer}
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;display:flex;justify-content:flex-end}
+.drawer{background:var(--surface);width:min(640px,100%);height:100%;overflow-y:auto;border-left:1px solid var(--border);padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px;animation:slide .18s ease}
+@keyframes slide{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.drawer{animation:none}}
+.dhead{display:flex;align-items:flex-start;gap:10px}
+.dhead input{flex:1;min-width:0;border:none;font-size:19px;font-weight:600;letter-spacing:-.3px;color:var(--text);background:none}
+.steps{display:flex;gap:4px;flex-wrap:wrap}
+.steps button{font-size:11px;font-weight:500;padding:4px 10px;border-radius:100px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer}
+.steps button.done{background:var(--accent-light);color:var(--accent);border-color:transparent}
+.steps button.cur{background:var(--accent);color:#fff;border-color:transparent}
+.lbl{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:520px){.two{grid-template-columns:minmax(0,1fr)}}
+.refcard{display:flex;gap:12px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;flex-wrap:wrap}
+.thumb{width:48px;height:76px;border-radius:5px;background:linear-gradient(160deg,#f3eefb,#f9eef4);display:grid;place-items:center;color:#6b4fa0;flex:none}
+.refcard div.i{flex:1 1 150px;min-width:0;font-size:12px;color:var(--text2);overflow-wrap:anywhere}
+.refcard b{display:block;font-size:13px;color:var(--text);font-weight:600}
+.twist{background:var(--amber-light);border:none;border-radius:6px;padding:9px 11px;font-size:13px;color:var(--text);width:100%;resize:vertical;min-height:54px;line-height:1.45}
+textarea.script{min-height:230px;resize:vertical;line-height:1.6;font-size:13px;padding:10px}
+textarea.orig{background:var(--surface2);color:var(--text2)}
+.addref{border:1px dashed var(--border2);border-radius:8px;padding:12px;text-align:center;font-size:12px;color:var(--text3);background:none;width:100%;cursor:pointer}
+.addref:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+
+<nav>
+  <div class="nav-brand"><span class="logo"></span><span>dashboard</span></div>
+  <button class="nav-tab">Calendar</button><button class="nav-tab">Finance</button><button class="nav-tab">Habits</button><button class="nav-tab active">Content</button>
+  <div class="nav-auth">lucent · Sign out</div>
+</nav>
+<div class="panel">
+  <p class="mockbar">Mock · example scripts and reels · click a row to open it · nothing here saves</p>
+  <div class="toolbar">
+    <div class="chips" id="chips"></div>
+    <div class="right">
+      <div class="seg"><button id="vList" class="on">List</button><button id="vSched">Schedule</button></div>
+      <button class="btn-ghost">Manage Pillars</button>
+    </div>
+  </div>
+  <div id="main"></div>
+</div>
+<div id="drawerHost"></div>
+
+<script>
+const PC=[{bg:'#f9eef4',text:'#b04070'},{bg:'#edf3f8',text:'#2c5f8a'},{bg:'#faeee9',text:'#c0502a'},{bg:'#fdf5e6',text:'#b5720a'},{bg:'#f3eefb',text:'#6b4fa0'},{bg:'#e7f5f3',text:'#1e7a6e'}];
+const pillars=[{id:1,name:'DITL',c:4},{id:2,name:'Thought/Feeling',c:2},{id:3,name:'Minimalistic Vlog',c:5},{id:4,name:'Story Telling',c:0},{id:5,name:'Talking Head',c:1}];
+const ST=['Idea','Scripted','Filmed','Edited','Posted'];
+const E={refUrl:'',refWho:'',twist:'',orig:'',script:'',notes:'',date:''};
+let items=[
+ {...E,id:10,idea:'life comes in waves',p:4,status:'Scripted',date:'2026-09-23',refUrl:'instagram.com/reel/EXAMPLE1',refWho:'@examplecreator · 1.2M views',
+  twist:'Theirs is about grief. Mine: startup momentum. Same wave metaphor, founder stakes, ends on a question.',
+  orig:'HOOK: Nobody tells you grief comes in waves.\n\nSome days the water is flat. You think you are fine.\n\nThen a song plays in the grocery store and you are under again.\n\nCLOSE: The waves do not stop. You just get better at swimming.',
+  script:'HOOK: Nobody tells you building comes in waves.\n\nSome weeks everything ships. You think you cracked it.\n\nThen one bad launch and you are under again.\n\nCLOSE: The waves do not stop. You just stop quitting at low tide.\n\nQ: What was your lowest tide this year?'},
+ {...E,id:4,idea:'DITL3',p:1,status:'Edited',date:'2026-09-21',notes:'dk if still wanna post',script:'VO: 6am. Gym, then desk.\nB-roll: coffee, standing desk, commit screen, walk.\nClose on: what I shipped today.'},
+ {...E,id:11,idea:'money while young',p:4,status:'Idea',refUrl:'tiktok.com/@example/video/2',refWho:'@examplefinance · 640K views',orig:'HOOK: If you are 20 and broke, watch this.\n\n(their transcript pasted here)'},
+ {...E,id:5,idea:'KASA intro',p:3,status:'Idea'},
+ {...E,id:7,idea:'explore more things',p:3,status:'Idea',date:'2026-09-28'},
+ {...E,id:13,idea:'no 20k pt 2',p:5,status:'Posted',date:'2026-09-14',script:'Talking head, one take.'},
+ {...E,id:9,idea:'NEW MIC',p:3,status:'Posted',date:'2026-09-09'},
+ {...E,id:12,idea:'Cleaning Desk',p:1,status:'Posted',date:'2026-09-04'},
+];
+let filter='all',view='list',open=null,armed=null,postedOpen=false,nid=200;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const col=i=>PC[pillars.find(p=>p.id===i.p).c];
+const pname=i=>pillars.find(p=>p.id===i.p).name;
+const fmt=d=>new Date(d+'T00:00').toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'});
+const shown=()=>items.filter(i=>filter==='all'||i.p===filter);
+
+function chips(){
+  $('#chips').innerHTML=`<span style="font-size:12px;color:var(--text2);margin-right:4px">Filter:</span>
+   <button class="pillar-chip ${filter==='all'?'selected':''}" data-f="all" style="background:var(--surface2);color:var(--text2)">All</button>`+
+   pillars.map(p=>`<button class="pillar-chip ${filter===p.id?'selected':''}" data-f="${p.id}" style="background:${PC[p.c].bg};color:${PC[p.c].text}">${p.name}</button>`).join('');
+}
+const cols='<colgroup><col style="width:210px"><col style="width:140px"><col style="width:100px"><col style="width:110px"><col style="width:84px"><col><col style="width:34px"></colgroup>';
+function row(i){
+  const c=col(i);
+  return `<tr class="crow ${i.status==='Posted'?'posted':''}" data-id="${i.id}" tabindex="0">
+   <td><div class="idea">${i.status!=='Posted'?'<span class="grip">⋮⋮</span>':''}<span>${esc(i.idea)}</span></div></td>
+   <td><span class="pill" style="background:${c.bg};color:${c.text}">${pname(i)}</span></td>
+   <td><select class="status-select status-${i.status.toLowerCase()}" data-st="${i.id}" aria-label="Status">${ST.map(s=>`<option ${s===i.status?'selected':''}>${s}</option>`).join('')}</select></td>
+   <td><span class="date ${i.date?'':'none'}">${i.date?fmt(i.date):'—'}</span></td>
+   <td><div class="tags"><span class="tag ${i.refUrl?'on':''}" title="Reference reel">REF</span><span class="tag ${i.script?'on':''}" title="Script">SCR</span></div></td>
+   <td><span class="note">${esc(i.notes)}</span></td>
+   <td><button class="del-btn" data-del="${i.id}" aria-label="Delete">×</button></td></tr>`;
+}
+function list(){
+  const a=shown().filter(i=>i.status!=='Posted'),p=shown().filter(i=>i.status==='Posted');
+  $('#main').innerHTML=`<div class="wrap">
+   <table>${cols}<thead><tr><th>Reel Idea</th><th>Content Pillar</th><th>Status</th><th>Post date</th><th>Has</th><th>Notes</th><th></th></tr></thead><tbody>${a.map(row).join('')}</tbody></table>
+   ${p.length?`<div class="posted-label" id="pt"><span>Posted (Archived) · ${p.length}</span><span>${postedOpen?'▲':'▼'}</span></div>`:''}
+   ${postedOpen?`<table>${cols}<tbody>${p.map(row).join('')}</tbody></table>`:''}
+   <table class="addrow">${cols}<tbody><tr>
+    <td><input class="form-input" id="newIdea" placeholder="Reel idea..."></td>
+    <td><select class="form-input" id="newPillar">${pillars.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></td>
+    <td><select class="form-input" id="newStatus">${ST.map(s=>`<option>${s}</option>`).join('')}</select></td>
+    <td><input class="form-input" id="newDate" type="date"></td><td></td>
+    <td><input class="form-input" id="newNotes" placeholder="Notes..."></td>
+    <td><button class="btn-primary" id="add" style="padding:6px 0;width:100%">+</button></td></tr></tbody></table></div>`;
+}
+function ev(i,extra=''){const c=col(i);return `<span class="ev ${armed===i.id?'armed':''} ${i.status==='Posted'?'posted':''} ${extra}" data-ev="${i.id}" style="background:${c.bg};color:${c.text}">${esc(i.idea)}</span>`}
+function sched(){
+  const first=new Date(2026,8,1).getDay();let cells='';
+  for(let k=0;k<first;k++)cells+='<div class="day pad"></div>';
+  for(let d=1;d<=30;d++){const iso='2026-09-'+String(d).padStart(2,'0');
+    cells+=`<div class="day ${d===19?'today':''} ${armed?'target':''}" data-day="${iso}"><span class="n">${d}</span>${shown().filter(i=>i.date===iso).map(i=>ev(i)).join('')}</div>`}
+  for(let k=(first+30)%7;k&&k<7;k++)cells+='<div class="day pad"></div>';
+  const un=shown().filter(i=>!i.date&&i.status!=='Posted');
+  const up=shown().filter(i=>i.date>='2026-09-19'&&i.status!=='Posted').sort((a,b)=>a.date.localeCompare(b.date));
+  const a=items.find(i=>i.id===armed);
+  $('#main').innerHTML=`<div class="sched"><div class="wrap">
+    <div class="calhead"><b>September 2026</b><button class="btn-ghost">‹</button><button class="btn-ghost">Today</button><button class="btn-ghost">›</button></div>
+    <div class="dow">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(x=>`<div>${x}</div>`).join('')}</div><div class="days">${cells}</div></div>
+   <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="side"><h4>Unscheduled · ${un.length}</h4>${un.map(i=>ev(i)).join('')||'<p>Everything has a post date.</p>'}
+     <p>${a?`<b style="color:var(--accent)">${esc(a.idea)}</b> picked. Click a day to schedule it, or click it again to open.`:'Click an idea to pick it up, then click a day. (Drag and drop in the real build.)'}</p></div>
+    <div class="side"><h4>Up next</h4>${up.map(i=>`<div class="up" data-open="${i.id}"><span>${esc(i.idea)}</span><span class="date">${fmt(i.date)}</span></div>`).join('')||'<p>Nothing scheduled.</p>'}</div>
+   </div></div>`;
+}
+function drawer(){
+  const i=items.find(x=>x.id===open);
+  if(!i){$('#drawerHost').innerHTML='';return}
+  const c=col(i),si=ST.indexOf(i.status),hasRef=!!i.refUrl||i._ref;
+  $('#drawerHost').innerHTML=`<div class="overlay" id="ov"><div class="drawer" role="dialog" aria-label="${esc(i.idea)}">
+   <div class="dhead"><input id="d-idea" value="${esc(i.idea)}" aria-label="Reel idea"><span class="pill" style="background:${c.bg};color:${c.text};white-space:nowrap">${pname(i)}</span><button class="btn-ghost" id="close">Close</button></div>
+   <div class="steps">${ST.map((s,k)=>`<button data-step="${s}" class="${k<si?'done':k===si?'cur':''}">${s}</button>`).join('')}</div>
+   <div class="two">
+    <div><label class="lbl" for="d-date">Post date</label><input class="form-input" type="date" id="d-date" value="${i.date}"></div>
+    <div><label class="lbl" for="d-notes">Notes</label><input class="form-input" id="d-notes" value="${esc(i.notes)}" placeholder="Notes..."></div>
+   </div>
+   ${hasRef?`
+   <div><label class="lbl" for="d-ref">Reference reel</label>
+    <div class="refcard"><div class="thumb">▶</div><div class="i"><b>${esc(i.refWho||'Reference')}</b><input class="form-input" id="d-ref" style="margin-top:4px" value="${esc(i.refUrl)}" placeholder="Paste Instagram / TikTok link"></div><a class="btn-ghost" href="#" onclick="return false">Open ↗</a></div></div>
+   <div><label class="lbl" for="d-twist">The twist · how mine differs</label><textarea class="twist" id="d-twist" placeholder="One or two lines: what am I changing? Audience, stakes, metaphor, ending…">${esc(i.twist)}</textarea></div>
+   <div><span class="lbl">Script · before and after</span><div class="two">
+     <div><label class="lbl" for="d-orig" style="font-size:10px">Original (their transcript)</label><textarea class="form-input script orig" id="d-orig" placeholder="Paste what they say...">${esc(i.orig)}</textarea></div>
+     <div><label class="lbl" for="d-script" style="font-size:10px">My draft</label><textarea class="form-input script" id="d-script" placeholder="Hook, beats, close...">${esc(i.script)}</textarea></div></div></div>`
+   :`
+   <button class="addref" id="addref">+ Add a reference reel (unlocks original vs my draft)</button>
+   <div><label class="lbl" for="d-script">Script</label><textarea class="form-input script" id="d-script" placeholder="Hook, beats, close...">${esc(i.script)}</textarea></div>`}
+  </div></div>`;
+  const bind=(id,k)=>{const el=$('#'+id);if(el)el.onchange=e=>{i[k]=e.target.value;main()}};
+  bind('d-idea','idea');bind('d-date','date');bind('d-notes','notes');bind('d-ref','refUrl');bind('d-twist','twist');bind('d-orig','orig');bind('d-script','script');
+  $('#close').onclick=()=>{open=null;render()};
+  $('#ov').onclick=e=>{if(e.target.id==='ov'){open=null;render()}};
+  if($('#addref'))$('#addref').onclick=()=>{i._ref=true;drawer()};
+  document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{i.status=b.dataset.step;render()});
+}
+function main(){chips();view==='list'?list():sched();$('#vList').className=view==='list'?'on':'';$('#vSched').className=view==='sched'?'on':''}
+function render(){main();drawer()}
+$('#vList').onclick=()=>{view='list';armed=null;render()};
+$('#vSched').onclick=()=>{view='sched';render()};
+$('#chips').onclick=e=>{const b=e.target.closest('[data-f]');if(b){filter=b.dataset.f==='all'?'all':+b.dataset.f;main()}};
+$('#main').addEventListener('change',e=>{if(e.target.dataset.st){items.find(i=>i.id==e.target.dataset.st).status=e.target.value;main()}});
+$('#main').onkeydown=e=>{if(e.key==='Enter'&&e.target.matches('tr.crow'))e.target.click();if(e.key==='Enter'&&e.target.id==='newIdea')$('#add').click()};
+$('#main').onclick=e=>{
+  const t=e.target;
+  if(t.closest('select,input'))return;
+  if(t.dataset.del){items=items.filter(i=>i.id!=t.dataset.del);return main()}
+  if(t.closest('#pt')){postedOpen=!postedOpen;return main()}
+  if(t.id==='add'){const v=$('#newIdea').value.trim();if(!v)return;
+    items.push({...E,id:nid++,idea:v,p:+$('#newPillar').value,status:$('#newStatus').value,date:$('#newDate').value,notes:$('#newNotes').value});return main()}
+  const r=t.closest('tr.crow');if(r){open=+r.dataset.id;return drawer()}
+  const o=t.closest('[data-open]');if(o){open=+o.dataset.open;return drawer()}
+  const v=t.closest('[data-ev]');
+  if(v){const id=+v.dataset.ev;if(armed===id){armed=null;open=id;return render()}armed=id;return main()}
+  const d=t.closest('[data-day]');if(d&&armed){items.find(i=>i.id===armed).date=d.dataset.day;armed=null;main()}
+};
+document.onkeydown=e=>{if(e.key==='Escape'&&open){open=null;render()}};
+render();
+</script>
