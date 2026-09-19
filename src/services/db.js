@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase.js'
+import { rowToContent, contentToRow } from '../lib/contentFields.js'
 
 function toDs(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -222,7 +223,7 @@ export async function fetchContent(userId) {
   if (e1) throw e1
   if (e2) throw e2
   const pillars = (pillarsData ?? []).map(p => ({ id: p.id, name: p.name, colorIdx: p.color_idx }))
-  const content = (itemsData ?? []).map(c => ({ id: c.id, idea: c.idea, pillarId: c.pillar_id, status: c.status, notes: c.notes ?? '' }))
+  const content = (itemsData ?? []).map(rowToContent)
   return { pillars, content }
 }
 
@@ -243,19 +244,14 @@ export async function deletePillar(id) {
 export async function insertContentItem(userId, item, sortOrder) {
   const { data, error } = await supabase
     .from('content_items')
-    .insert({ user_id: userId, idea: item.idea, pillar_id: item.pillarId, status: item.status, notes: item.notes, sort_order: sortOrder })
+    .insert({ user_id: userId, sort_order: sortOrder, ...contentToRow(item) })
     .select().single()
   if (error) throw error
   return data.id
 }
 
 export async function updateContentItem(id, changes) {
-  const mapped = {}
-  if ('pillarId' in changes) mapped.pillar_id = changes.pillarId
-  if ('idea'     in changes) mapped.idea      = changes.idea
-  if ('status'   in changes) mapped.status    = changes.status
-  if ('notes'    in changes) mapped.notes     = changes.notes
-  const { error } = await supabase.from('content_items').update(mapped).eq('id', id)
+  const { error } = await supabase.from('content_items').update(contentToRow(changes)).eq('id', id)
   if (error) throw error
 }
 

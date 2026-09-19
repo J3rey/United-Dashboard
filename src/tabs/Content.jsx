@@ -257,6 +257,7 @@ export default function Content({ state, setState, user, isDemo }) {
   const [newPillar, setNewPillar] = useState(() => getDefaultPillarId(state.pillars))
   const [newStatus, setNewStatus] = useState('Idea')
   const [newNotes, setNewNotes]   = useState('')
+  const [newDate, setNewDate]     = useState('')
   const newNotesRef = useRef(null)
   const newIdeaRef = useRef(null)
 
@@ -304,7 +305,7 @@ export default function Content({ state, setState, user, isDemo }) {
     if (!newIdea.trim()) return
     const pillarId = resolvePillarId(state.pillars, newPillar)
     if (!pillarId) return
-    const item = { idea: newIdea.trim(), pillarId, status: newStatus, notes: newNotes }
+    const item = { idea: newIdea.trim(), pillarId, status: newStatus, notes: newNotes, postDate: newDate, refUrl: '', twist: '', origScript: '', script: '' }
     if (isDemo) {
       setState(prev => ({ ...prev, content: [...prev.content, { id: uid(), ...item }] }))
     } else {
@@ -315,6 +316,7 @@ export default function Content({ state, setState, user, isDemo }) {
     setNewPillar(getDefaultPillarId(state.pillars))
     setNewStatus('Idea')
     setNewNotes('')
+    setNewDate('')
     if (newIdeaRef.current) { newIdeaRef.current.style.height = 'auto'; newIdeaRef.current.focus() }
     if (newNotesRef.current) newNotesRef.current.style.height = 'auto'
   }
