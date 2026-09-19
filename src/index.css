@@ -1513,6 +1513,37 @@ tr.posted-row td {
   transform: rotate(180deg);
 }
 
+/* ── Content studio ─────────────────────────────────────────── */
+.cs-date { font-family: "DM Mono", monospace; font-size: 12px; color: var(--text2); white-space: nowrap; }
+.cs-date.none { color: var(--text3); }
+.cs-has { display: flex; align-items: center; gap: 4px; }
+.cs-tag { font-family: "DM Mono", monospace; font-size: 10px; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); color: var(--border2); }
+.cs-tag.on { background: var(--blue-light); color: var(--blue); border-color: transparent; }
+.cs-open { font-size: 11px; padding: 2px 8px; margin-left: 4px; }
+.cs-pill { padding: 3px 9px; border-radius: 100px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.cs-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); z-index: 200; display: flex; justify-content: flex-end; }
+.cs-drawer { background: var(--surface); width: min(640px, 100%); height: 100%; overflow-y: auto; border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 18px; animation: fadeIn 0.18s ease; }
+.cs-drawer-head { display: flex; align-items: center; gap: 10px; }
+.cs-drawer-title { flex: 1; min-width: 0; border: none; outline: none; background: none; font-family: "DM Sans", sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -0.3px; color: var(--text); }
+.cs-drawer-title:focus { box-shadow: 0 1px 0 var(--accent); }
+.cs-steps { display: flex; gap: 4px; flex-wrap: wrap; }
+.cs-steps button { font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 100px; border: 1px solid var(--border); background: var(--surface2); color: var(--text3); cursor: pointer; }
+.cs-steps button.done { background: var(--accent-light); color: var(--accent); border-color: transparent; }
+.cs-steps button.cur { background: var(--accent); color: #fff; border-color: transparent; }
+.cs-label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+.cs-label-sm { font-size: 10px; }
+.cs-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cs-refcard { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.cs-refcard .form-input { flex: 1 1 220px; }
+.cs-refcard a { text-decoration: none; }
+.cs-refhost { font-size: 12px; color: var(--text2); }
+.cs-twist { width: 100%; min-height: 54px; resize: vertical; border: none; outline: none; border-radius: 6px; padding: 9px 11px; background: var(--amber-light); color: var(--text); font-family: "DM Sans", sans-serif; font-size: 13px; line-height: 1.45; }
+.cs-script { min-height: 230px; resize: vertical; line-height: 1.6; padding: 10px; }
+.cs-script-orig { background: var(--surface2); color: var(--text2); }
+.cs-addref { width: 100%; border: 1px dashed var(--border2); border-radius: 8px; padding: 12px; background: none; cursor: pointer; font-family: "DM Sans", sans-serif; font-size: 12px; color: var(--text3); }
+.cs-addref:hover { border-color: var(--accent); color: var(--accent); }
+@media (max-width: 520px) { .cs-two { grid-template-columns: minmax(0, 1fr); } }
+
 /* ===== MODAL ===== */
 .modal-overlay {
   position: fixed;

@@ -19,6 +19,8 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { PILLAR_COLORS } from '../constants/index.js'
 import * as db from '../services/db.js'
+import ContentDrawer from './content/ContentDrawer.jsx'
+import { formatPostDate } from '../lib/contentFields.js'
 
 let _nextId = 500
 const uid = () => _nextId++
@@ -117,6 +119,7 @@ function ContentRow({
   onNoteChange,
   onPillarChange,
   onDelete,
+  onOpen,
   allowDrag,
   activeDragId,
   overDragId,
@@ -233,6 +236,16 @@ function ContentRow({
         </select>
       </td>
       <td>
+        <span className={'cs-date' + (c.postDate ? '' : ' none')}>{c.postDate ? formatPostDate(c.postDate) : '—'}</span>
+      </td>
+      <td>
+        <span className="cs-has">
+          <span className={'cs-tag' + (c.refUrl ? ' on' : '')} title="Reference reel">REF</span>
+          <span className={'cs-tag' + (c.script ? ' on' : '')} title="Script">SCR</span>
+          <button className="btn-ghost cs-open" type="button" aria-label={`Open ${c.idea}`} onClick={() => onOpen(c.id)}>Open</button>
+        </span>
+      </td>
+      <td>
         <AutoTextarea value={c.notes} placeholder="Notes…" onBlur={val => onNoteChange(c.id, val)} />
       </td>
       <td><button className="del-btn" onClick={() => onDelete(c.id)}>×</button></td>
@@ -248,6 +261,7 @@ function SortableContentRow(props) {
 
 export default function Content({ state, setState, user, isDemo }) {
   const [postedCollapsed, setPostedCollapsed] = useState(true)
+  const [openId, setOpenId] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedColor, setSelectedColor] = useState(0)
   const [newPillarName, setNewPillarName] = useState('')
@@ -402,6 +416,7 @@ export default function Content({ state, setState, user, isDemo }) {
   const displayPillars = sortPillarsForDisplay(state.pillars)
   const active = state.content.filter(c => c.status !== 'Posted' && (f === 'all' || sameId(c.pillarId, f)))
   const posted = state.content.filter(c => c.status === 'Posted' && (f === 'all' || sameId(c.pillarId, f)))
+  const openItem = openId === null ? null : state.content.find(c => sameId(c.id, openId))
 
   return (
     <div className="panel">
@@ -449,7 +464,9 @@ export default function Content({ state, setState, user, isDemo }) {
               <col style={{ width: '220px' }} />
               <col style={{ width: '150px' }} />
               <col style={{ width: '110px' }} />
-              <col style={{ width: '260px' }} />
+              <col style={{ width: '110px' }} />
+              <col style={{ width: '150px' }} />
+              <col style={{ width: '220px' }} />
               <col style={{ width: '34px' }} />
             </colgroup>
             <thead>
@@ -457,6 +474,8 @@ export default function Content({ state, setState, user, isDemo }) {
                 <th>Reel Idea</th>
                 <th>Content Pillar</th>
                 <th>Status</th>
+                <th>Post date</th>
+                <th>Has</th>
                 <th>Notes</th>
                 <th></th>
               </tr>
@@ -472,6 +491,7 @@ export default function Content({ state, setState, user, isDemo }) {
                     onNoteChange={(id, val) => updateContent(id, 'notes', val)}
                     onPillarChange={(id, pillarId) => updateContent(id, 'pillarId', pillarId)}
                     onDelete={deleteContent}
+                    onOpen={setOpenId}
                     allowDrag
                     activeDragId={activeDragId}
                     overDragId={overDragId}
@@ -499,7 +519,9 @@ export default function Content({ state, setState, user, isDemo }) {
               <col style={{ width: '220px' }} />
               <col style={{ width: '150px' }} />
               <col style={{ width: '110px' }} />
-              <col style={{ width: '260px' }} />
+              <col style={{ width: '110px' }} />
+              <col style={{ width: '150px' }} />
+              <col style={{ width: '220px' }} />
               <col style={{ width: '34px' }} />
             </colgroup>
             <tbody>
@@ -512,6 +534,7 @@ export default function Content({ state, setState, user, isDemo }) {
                     onNoteChange={(id, val) => updateContent(id, 'notes', val)}
                     onPillarChange={(id, pillarId) => updateContent(id, 'pillarId', pillarId)}
                     onDelete={deleteContent}
+                    onOpen={setOpenId}
                     allowDrag={false}
                     activeDragId={activeDragId}
                     overDragId={overDragId}
@@ -529,7 +552,9 @@ export default function Content({ state, setState, user, isDemo }) {
             <col style={{ width: '220px' }} />
             <col style={{ width: '150px' }} />
             <col style={{ width: '110px' }} />
-            <col style={{ width: '260px' }} />
+            <col style={{ width: '110px' }} />
+            <col style={{ width: '150px' }} />
+            <col style={{ width: '220px' }} />
             <col style={{ width: '34px' }} />
           </colgroup>
           <tbody>
@@ -557,6 +582,10 @@ export default function Content({ state, setState, user, isDemo }) {
                 </select>
               </td>
               <td>
+                <input className="form-input" type="date" aria-label="Post date" value={newDate} onChange={e => setNewDate(e.target.value)} style={{ fontSize: '12px', padding: '4px 8px' }} />
+              </td>
+              <td></td>
+              <td>
                 <textarea
                   ref={newNotesRef}
                   className="form-input"
@@ -575,6 +604,16 @@ export default function Content({ state, setState, user, isDemo }) {
           </tbody>
         </table>
       </div>
+
+      {openItem && (
+        <ContentDrawer
+          key={openItem.id}
+          item={openItem}
+          pillars={state.pillars}
+          onUpdate={updateContent}
+          onClose={() => setOpenId(null)}
+        />
+      )}
 
       {/* Pillar Manager Modal */}
       {modalOpen && (
