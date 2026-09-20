@@ -167,7 +167,7 @@ function ContentRow({
       ].filter(Boolean).join(' ')}
       style={{
         cursor: isDraggable ? 'grab' : 'default',
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
       }}
     >
@@ -608,7 +608,7 @@ export default function Content({ state, setState, user, isDemo }) {
                 />
               </td>
               <td>
-                <button className="btn-primary" onClick={addContentRow} style={{ width: '100%', padding: '5px 0', fontSize: '12px', whiteSpace: 'nowrap' }}>Add</button>
+                <button className="btn-primary" onClick={addContentRow} aria-label="Add reel" title="Add" style={{ width: '26px', height: '26px', padding: 0, fontSize: '16px', lineHeight: 1 }}>+</button>
               </td>
             </tr>
           </tbody>
