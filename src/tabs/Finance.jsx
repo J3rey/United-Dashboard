@@ -105,10 +105,15 @@ function CatPopover({ cat, rect, onSelect, onClose }) {
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [onClose])
+  // flip above the chip when the list won't fit below; scroll if it fits neither way
+  const below = window.innerHeight - rect.bottom - 12
+  const above = rect.top - 12
+  const openUp = below < CATS.length * 30 + 12 && above > below
   return createPortal(
     <div ref={ref} style={{
       position: 'fixed', zIndex: 1000,
-      top: rect.bottom + 4, left: rect.left,
+      ...(openUp ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
+      left: rect.left, maxHeight: openUp ? above : below, overflowY: 'auto',
       background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '8px',
       boxShadow: '0 4px 16px rgba(0,0,0,0.12)', padding: '6px',
       display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '120px',
