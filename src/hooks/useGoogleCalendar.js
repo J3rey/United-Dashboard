@@ -89,6 +89,8 @@ export function useGoogleCalendar() {
 
   // Init GIS token client
   useEffect(() => {
+    // GIS throws without a client id; skip init so a missing env var doesn't blank the app
+    if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) return
     function init() {
       const client = window.google.accounts.oauth2.initTokenClient({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
