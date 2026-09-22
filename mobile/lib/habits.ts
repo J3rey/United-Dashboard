@@ -12,5 +12,5 @@ export function habitDay(habit: Habit,date: string,habits: Habit[],checks: Recor
  const checked=Boolean(checks[`${habit.id}_${date}`]), inherited=!checked && checkedOn(habit.id,date,habits,checks);
  const count=weekDates(date).filter(d=>checkedOn(habit.id,d,habits,checks)).length;
  const goal=habit.daily?7:habit.goal, goalMet=!habit.daily && count>=goal;
- return {checked,inherited,count,goal,satisfied:checked||inherited||goalMet,state:checked?'checked' as const:inherited||goalMet?'goal' as const:'empty' as const};
+ return {checked,inherited,count,goal,satisfied:checked||inherited||goalMet,state:checked||inherited?'checked' as const:'empty' as const};
 }

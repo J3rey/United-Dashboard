@@ -12,6 +12,6 @@ test.each([['2026-09-08','2026-09-07',1],['2027-01-01','2026-12-28',4],['2026-03
 });
 test('weekly goal satisfaction does not manufacture a real check', () => {
  const habit = {id:1,name:'Read',type:'weekly' as const,daily:false,goal:2};
- expect(habitDay(habit,'2026-09-12',[habit],{'1_2026-09-07':true,'1_2026-09-08':true})).toMatchObject({ checked:false, satisfied:true, state:'goal', count:2 });
+ expect(habitDay(habit,'2026-09-12',[habit],{'1_2026-09-07':true,'1_2026-09-08':true})).toMatchObject({ checked:false, satisfied:true, state:'empty', count:2 });
  expect(weekDates('2027-01-01')[0]).toBe('2026-12-28');
 });
