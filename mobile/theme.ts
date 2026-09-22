@@ -11,7 +11,7 @@ export const colors = {
 export const fonts = { regular: 'DMSans_400Regular', medium: 'DMSans_500Medium', semibold: 'DMSans_600SemiBold', bold: 'DMSans_700Bold' };
 export const numbers: TextStyle = { fontVariant: ['tabular-nums'] };
 export const type = {
-  title: { fontFamily: fonts.bold, fontSize: 26, letterSpacing: -0.78, color: colors.ink },
+  title: { fontFamily: fonts.bold, fontSize: 26, lineHeight: 32, letterSpacing: -0.78, color: colors.ink },
   screenTitle: { fontFamily: fonts.semibold, fontSize: 19, letterSpacing: -0.38, color: colors.ink },
   sheetTitle: { fontFamily: fonts.semibold, fontSize: 18, letterSpacing: -0.36, color: colors.ink },
   body: { fontFamily: fonts.medium, fontSize: 14.5, color: colors.ink },
