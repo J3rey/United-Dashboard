@@ -1253,6 +1253,7 @@ tr.ev-end-row td {
   border-color: var(--blue);
 }
 .cb.auto-checked {
+  opacity: 0.4;
   cursor: default;
 }
 .cb.auto-checked:hover {
@@ -1270,9 +1271,6 @@ tr.ev-end-row td {
 .habit-completion {
   padding: 10px 12px;
   text-align: center;
-}
-.habit-day-strip {
-  display: none;
 }
 .completion-badge {
   display: inline-block;
@@ -1733,68 +1731,6 @@ tr.posted-row td {
 
   .modal-overlay.open {
     align-items: flex-start;
-  }
-
-  /* Habits: one day at a time, picked from a free-scrolling day strip */
-  .habit-table-wrap {
-    overflow-x: hidden;
-  }
-  .habit-hdr-row,
-  .habit-row {
-    min-width: 0;
-  }
-  .habit-row {
-    grid-template-columns: minmax(0, 1fr) 48px 72px;
-  }
-  .habit-check:not(.sel),
-  .habit-day-hdr:not(.sel) {
-    display: none;
-  }
-  .habit-day-strip {
-    display: flex;
-    gap: 6px;
-    padding: 10px 12px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-  }
-  .habit-day-strip::-webkit-scrollbar {
-    display: none;
-  }
-  .habit-day-chip {
-    flex: 0 0 auto;
-    min-width: 44px;
-    padding: 6px 8px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--text2);
-    font: inherit;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    cursor: pointer;
-  }
-  .habit-day-chip b {
-    font-size: 14px;
-    color: var(--text);
-  }
-  .habit-day-chip.today {
-    border-color: var(--accent);
-  }
-  .habit-day-chip.sel {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-  .habit-day-chip.sel b {
-    color: #fff;
   }
 
   .modal {

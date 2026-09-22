@@ -18,8 +18,6 @@ function getWeekDates(offset) {
   })
 }
 
-const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
-
 const CheckIcon = () => (
   <svg className="checkmark" viewBox="0 0 12 12">
     <polyline points="2,6 5,9 10,3" />
@@ -31,11 +29,8 @@ export default function Habits({ state, setState, user, isDemo }) {
   const [nameInput, setNameInput] = useState('')
   const [goalInput, setGoalInput] = useState(3)
   const [archivedOpen, setArchivedOpen] = useState(false)
-  // Mobile: which weekday (0 = Mon) is shown; persists across week navigation
-  const [selIdx, setSelIdx] = useState(() => (new Date().getDay() + 6) % 7)
 
   const dates = getWeekDates(state.habitWeekOffset)
-  const todayDs = toDs(new Date())
 
   // Ticking Gym auto-ticks Physical exercise (faint, not manually toggleable)
   const gymHabit = state.habits.find(h => /^gym\b/i.test(h.name))
@@ -154,12 +149,12 @@ export default function Habits({ state, setState, user, isDemo }) {
             style={{ marginLeft: '6px', fontSize: '11px' }}
           >×</button>
         </div>
-        {dates.map((d, i) => {
+        {dates.map(d => {
           const auto = isAuto(h.id, d)
           const checked = isChecked(h.id, d)
           const cls = (checked ? (h.daily ? 'cb daily-checked' : 'cb checked') : 'cb') + (auto ? ' auto-checked' : '')
           return (
-            <div key={d} className={'habit-check' + (i === selIdx ? ' sel' : '')}>
+            <div key={d} className="habit-check">
               <div className={cls} onClick={() => toggleHabit(h.id, d)}>
                 {checked && <CheckIcon />}
               </div>
@@ -197,25 +192,11 @@ export default function Habits({ state, setState, user, isDemo }) {
               </div>
             </div>
 
-            {/* Mobile day strip: free-scrolling, tap a day to show its column */}
-            <div className="habit-day-strip">
-              {dates.map((d, i) => (
-                <button
-                  key={d}
-                  className={'habit-day-chip' + (i === selIdx ? ' sel' : '') + (d === todayDs ? ' today' : '')}
-                  onClick={() => setSelIdx(i)}
-                >
-                  <span>{DAY_NAMES[i]}</span>
-                  <b>{parseInt(d.slice(8), 10)}</b>
-                </button>
-              ))}
-            </div>
-
             {/* Header row */}
             <div className="habit-row" style={{ background: 'var(--surface2)', borderBottom: '1px solid var(--border)' }}>
               <div className="habit-name" style={{ fontSize: '10px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.4px', padding: '8px 16px' }}>Habit</div>
-              {DAY_NAMES.map((d, i) => (
-                <div key={d} className={'habit-day-hdr' + (i === selIdx ? ' sel' : '')}>{d}</div>
+              {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
+                <div key={d} className="habit-day-hdr">{d}</div>
               ))}
               <div className="habit-day-hdr">Progress</div>
             </div>
