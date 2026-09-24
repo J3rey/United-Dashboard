@@ -30,10 +30,10 @@ function Chip({ item, pillars, onOpen }) {
   )
 }
 
-function Day({ iso, isToday, children }) {
+function Day({ iso, isToday, outside, children }) {
   const { setNodeRef, isOver } = useDroppable({ id: iso })
   return (
-    <div ref={setNodeRef} className={'cs-day' + (isToday ? ' today' : '') + (isOver ? ' over' : '')}>
+    <div ref={setNodeRef} className={'cs-day' + (outside ? ' outside' : '') + (isToday ? ' today' : '') + (isOver ? ' over' : '')}>
       <span className="cs-day-n">{Number(iso.slice(8))}</span>
       {children}
     </div>
@@ -95,13 +95,11 @@ export default function ContentSchedule({ items, pillars, onUpdate, onOpen }) {
           </div>
           <div className="cs-dow">{DOW.map(d => <div key={d}>{d}</div>)}</div>
           <div className="cs-days">
-            {monthGrid(ym.year, ym.month).map((iso, k) => iso === null
-              ? <div key={'pad' + k} className="cs-day pad" />
-              : (
-                <Day key={iso} iso={iso} isToday={iso === today}>
-                  {items.filter(i => i.postDate === iso).map(i => <Chip key={i.id} item={i} pillars={pillars} onOpen={open} />)}
-                </Day>
-              ))}
+            {monthGrid(ym.year, ym.month).map(iso => (
+              <Day key={iso} iso={iso} isToday={iso === today} outside={Number(iso.slice(5, 7)) - 1 !== ym.month}>
+                {items.filter(i => i.postDate === iso).map(i => <Chip key={i.id} item={i} pillars={pillars} onOpen={open} />)}
+              </Day>
+            ))}
           </div>
         </div>
 

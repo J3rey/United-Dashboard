@@ -49,14 +49,15 @@ describe('dates', () => {
   it('Sep 2026 starts on Tuesday with 30 days', () => {
     const g = monthGrid(2026, 8)
     expect(g.length).toBe(35)
-    expect(g.slice(0, 3)).toEqual([null, null, '2026-09-01'])
+    expect(g.slice(0, 3)).toEqual(['2026-08-30', '2026-08-31', '2026-09-01'])
     expect(g[31]).toBe('2026-09-30')
-    expect(g.slice(32)).toEqual([null, null, null])
+    expect(g.slice(32)).toEqual(['2026-10-01', '2026-10-02', '2026-10-03'])
   })
   it('Nov 2026 starts on Sunday', () => {
     const g = monthGrid(2026, 10)
     expect(g[0]).toBe('2026-11-01')
     expect(g.length % 7).toBe(0)
+    expect(g[g.length - 1]).toBe('2026-12-05')
   })
   it('handles leap February', () => {
     const g = monthGrid(2028, 1)

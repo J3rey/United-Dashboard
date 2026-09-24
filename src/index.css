@@ -1558,7 +1558,8 @@ tr.posted-row td {
 .cs-dow div { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; padding: 6px 8px; background: var(--surface2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .cs-day { min-height: 92px; min-width: 0; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); padding: 5px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; font-size: 11px; color: var(--text2); }
 .cs-day:nth-child(7n + 1) { border-left: none; }
-.cs-day.pad { background: var(--surface2); }
+.cs-day.outside { background: var(--surface2); }
+.cs-day.outside .cs-day-n { color: var(--text3); }
 .cs-day.over { background: var(--accent-light); }
 .cs-day-n { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; }
 .cs-day.today .cs-day-n { background: var(--accent); color: #fff; }

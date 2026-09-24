@@ -47,11 +47,15 @@ export function todayISO(now = new Date()) {
 }
 
 export function monthGrid(year, month) {
+  // Pads the grid with the neighbouring months' days so there are no blank cells.
   const lead = new Date(year, month, 1).getDay()
   const days = new Date(year, month + 1, 0).getDate()
-  const cells = Array(lead).fill(null)
-  for (let d = 1; d <= days; d++) cells.push(toISODate(year, month, d))
-  while (cells.length % 7) cells.push(null)
+  const total = Math.ceil((lead + days) / 7) * 7
+  const cells = []
+  for (let i = 0; i < total; i++) {
+    const d = new Date(year, month, 1 - lead + i)
+    cells.push(toISODate(d.getFullYear(), d.getMonth(), d.getDate()))
+  }
   return cells
 }
 
