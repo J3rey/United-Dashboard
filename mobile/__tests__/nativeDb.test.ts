@@ -3,6 +3,7 @@ jest.mock('../lib/supabase',()=>({supabase:{from:(table:string)=>mockFrom(table)
 jest.mock('../lib/db',()=>({insertTransaction:jest.fn(),deleteTransaction:jest.fn()}));
 import { deleteHabit, updateContentPositions, insertOrderedTransaction } from '../lib/nativeDb';
 import * as db from '../lib/db';
+import { blankContent } from '../lib/content';
 import type { ContentItem } from '../lib/types';
 beforeEach(()=>{mockFrom.mockReset();});
 test('a failed habit deletion restores its existing check history',async()=>{
@@ -15,7 +16,7 @@ test('a failed habit deletion restores its existing check history',async()=>{
 });
 test('reorder writes only affected positions',async()=>{
  const update=jest.fn(()=>({eq:jest.fn().mockResolvedValue({error:null})}));mockFrom.mockReturnValue({update});
- const row=(id:number):ContentItem=>({id,idea:'Idea',pillarId:null,notes:'',status:'Idea'}),before=[row(1),row(2),row(3)];
+ const row=(id:number):ContentItem=>({id,idea:'Idea',pillarId:null,notes:'',status:'Idea',...blankContent}),before=[row(1),row(2),row(3)];
  await updateContentPositions(before,[before[1]!,before[0]!,before[2]!]);
  expect(update.mock.calls).toEqual([[{sort_order:0}],[{sort_order:1}]]);
 });

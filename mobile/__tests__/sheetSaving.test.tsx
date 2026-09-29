@@ -2,6 +2,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import { IdeaDetailSheet } from '../components/sheets/ContentSheets';
 import { ExpenseDetailSheet } from '../components/sheets/ExpenseSheets';
 import { HabitActionsSheet } from '../components/sheets/HabitSheets';
+import { blankContent } from '../lib/content';
 import type { ReactNode } from 'react';
 import type { TextInputProps } from 'react-native';
 jest.mock('../components/sheets/PillarSheet', () => ({ PillarSheet: () => null }));
@@ -20,7 +21,7 @@ jest.mock('../components/ui', () => {
   ui: { line: {}, flex: {} },
  };
 });
-const item = { id: 1, idea: 'An idea', notes: '', pillarId: null, status: 'Posted' as const };
+const item = { id: 1, idea: 'An idea', notes: '', pillarId: null, status: 'Posted' as const, ...blankContent };
 beforeEach(() => mockEdit.mockReset().mockResolvedValue(true));
 test('Done saves focused notes before closing, without blur', async () => {
  const close = jest.fn(), screen = await render(<IdeaDetailSheet item={item} onClose={close}/>);

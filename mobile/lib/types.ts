@@ -11,7 +11,7 @@ export type Income = { id: Id; date: string; source: string; amount: number; sal
 export type Debt = { id: Id; date: string; person: string; detail: string; amount: number; resolved: boolean; resolvedAt: string | null };
 export type Habit = { id: Id; name: string; type: 'weekly' | 'daily'; goal: number; daily: boolean; archived?: boolean };
 export type Pillar = { id: Id; name: string; colorIdx: number };
-export type ContentItem = { id: Id; idea: string; pillarId: Id | null; status: ContentStatus; notes: string };
+export type ContentItem = { id: Id; idea: string; pillarId: Id | null; status: ContentStatus; notes: string; postDate: string; refUrl: string; twist: string; origScript: string; script: string };
 export type CalendarEvent = { id: Id; title: string; date: string; start: string; end: string; cat: string; notes: string };
 export type AppState = {
   events: CalendarEvent[]; expenses: Transaction[]; income: Income[]; debts: Debt[]; habits: Habit[];
@@ -26,7 +26,7 @@ type DebtRow = { id: Id; user_id: string; date: string; person: string; detail: 
 type HabitRow = { id: Id; user_id: string; name: string; type: 'weekly' | 'daily'; goal: number; is_daily: boolean; archived: boolean | null; sort_order: number };
 type HabitLogRow = { user_id: string; habit_id: Id; week_start: string; day_index: number; checked: boolean };
 type PillarRow = { id: Id; user_id: string; name: string; color_idx: number; sort_order: number };
-type ContentRow = { id: Id; user_id: string; idea: string; pillar_id: Id | null; status: ContentStatus; notes: string | null; sort_order: number };
+export type ContentRow = { id: Id; user_id: string; idea: string; pillar_id: Id | null; status: ContentStatus; notes: string | null; sort_order: number; post_date: string | null; ref_url: string | null; twist: string | null; orig_script: string | null; script: string | null };
 type Table<Row> = { Row: Row; Insert: Partial<Row>; Update: Partial<Row>; Relationships: [] };
 export type Database = { public: {
   Tables: {
@@ -39,5 +39,5 @@ export type Database = { public: {
 export type IncomeChanges = Partial<Pick<Income, 'date' | 'source' | 'amount' | 'salary'>>;
 export type DebtChanges = Partial<Pick<Debt, 'date' | 'person' | 'detail' | 'amount' | 'resolved' | 'resolvedAt'>>;
 export type HabitChanges = Partial<Pick<Habit, 'name' | 'goal' | 'archived'>>;
-export type ContentChanges = Partial<Pick<ContentItem, 'idea' | 'pillarId' | 'status' | 'notes'>>;
+export type ContentChanges = Partial<Pick<ContentItem, 'idea' | 'pillarId' | 'status' | 'notes' | 'postDate' | 'refUrl' | 'twist' | 'origScript' | 'script'>>;
 export type TransactionChanges = Partial<Omit<Expense, 'id' | 'isHeader' | 'isEnd'>> & Partial<Pick<EventHeader, 'label'>>;

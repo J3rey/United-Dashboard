@@ -4,7 +4,7 @@ import { Pressable, Text, View, type TextInput } from 'react-native';
 import { useData } from '../../hooks/useAppData';
 import { useActions } from '../../hooks/useActions';
 import { PILLAR_COLORS } from '../../lib/constants';
-import { stages, stageColors } from '../../lib/content';
+import { stages, stageColors, blankContent } from '../../lib/content';
 import type { ContentItem, ContentStatus, Id } from '../../lib/types';
 import { colors, numbers, type } from '../../theme';
 import { Button, Chip, EditRow, Field, Sheet, ui } from '../ui';
@@ -14,7 +14,7 @@ function PillarChips({value,onChange}:{value:Id|null;onChange:(id:Id)=>void}) {c
 export function AddIdeaSheet({filter,onClose}:{filter:Id|'all';onClose:()=>void}) {
  const data=useData(),actions=useActions(),[idea,setIdea]=useState(''),[notes,setNotes]=useState(''),[pillarId,setPillarId]=useState<Id|null>(filter!=='all'?filter:data.state.pillars[0]?.id??null),[addPillar,setAddPillar]=useState(false),ideaInput=useRef<TextInput>(null);
  useEffect(()=>{if(!data.state.pillars.some(p=>p.id===pillarId))setPillarId(data.state.pillars[0]?.id??null);},[data.state.pillars,pillarId]);
- return <><Sheet title="New idea" onClose={onClose}><Field label="The idea" inputRef={ideaInput} autoFocus multiline scrollEnabled style={{height:82,textAlignVertical:'top'}} value={idea} onChangeText={setIdea}/><Text style={ui.label}>Pillar</Text>{data.state.pillars.length?<PillarChips value={pillarId} onChange={setPillarId}/>:<Button label="Create a pillar first" tone="quiet" onPress={()=>setAddPillar(true)}/>}<Field label="Notes · optional" multiline value={notes} onChangeText={setNotes}/><Button label="Add idea" disabled={!idea.trim()||!pillarId||actions.busy} onPress={async()=>{if(await actions.saveIdea({idea:idea.trim(),notes:notes.trim(),pillarId,status:'Idea'})){setIdea('');setNotes('');ideaInput.current?.focus();}}}/></Sheet>{addPillar&&<PillarSheet onClose={()=>setAddPillar(false)}/>}</>;
+ return <><Sheet title="New idea" onClose={onClose}><Field label="The idea" inputRef={ideaInput} autoFocus multiline scrollEnabled style={{height:82,textAlignVertical:'top'}} value={idea} onChangeText={setIdea}/><Text style={ui.label}>Pillar</Text>{data.state.pillars.length?<PillarChips value={pillarId} onChange={setPillarId}/>:<Button label="Create a pillar first" tone="quiet" onPress={()=>setAddPillar(true)}/>}<Field label="Notes · optional" multiline value={notes} onChangeText={setNotes}/><Button label="Add idea" disabled={!idea.trim()||!pillarId||actions.busy} onPress={async()=>{if(await actions.saveIdea({idea:idea.trim(),notes:notes.trim(),pillarId,status:'Idea',...blankContent})){setIdea('');setNotes('');ideaInput.current?.focus();}}}/></Sheet>{addPillar&&<PillarSheet onClose={()=>setAddPillar(false)}/>}</>;
 }
 export function IdeaDetailSheet({item,onClose}:{item:ContentItem;onClose:()=>void}) {
  const data=useData(),actions=useActions(),[editing,setEditing]=useState<'idea'|'pillar'|null>(null),[idea,setIdea]=useState(item.idea),[notes,setNotes]=useState(item.notes),[picker,setPicker]=useState(false),index=stages.indexOf(item.status),next=stages[index+1],stage=stageColors[item.status];
