@@ -25,7 +25,7 @@ function parseRef(url:string) {
  const href=/^[a-z][a-z0-9+.-]*:/i.test(raw)?raw:`https://${raw}`;
  let parsed:URL;try{parsed=new URL(href);}catch{return null;}
  if(parsed.protocol!=='http:'&&parsed.protocol!=='https:')return null;
- return {href,host:parsed.hostname.replace(/^www\./,'')};
+ return {href:parsed.href,host:parsed.hostname.replace(/^www\./,'')};
 }
 export function refHref(url:string) {return parseRef(url)?.href??'';}
 export function refHost(url:string) {return parseRef(url)?.host??'';}

@@ -72,10 +72,18 @@ test('Add to this day opens the add-to-day sheet for the selected date, then New
  expect(screen.queryByText(`Add to day sheet: ${today}`)).toBeNull();
 });
 
-test('Today jumps back to the current month and day after paging away', async () => {
+test('Today jumps back to the current month and day after paging and selecting elsewhere', async () => {
  const today = dateString();
+ const prevMonthDay = new Date(); prevMonthDay.setDate(15); prevMonthDay.setMonth(prevMonthDay.getMonth() - 1);
+ const prevIso = dateString(prevMonthDay), prevLabel = `${dateLabel(prevIso, false)}, 0 ideas`, todayLabel = `${dateLabel(today, false)}, 0 ideas`;
  const screen = await render(<ContentSchedule items={[]} onOpen={jest.fn()}/>);
  await act(async () => { fireEvent.press(screen.getByLabelText('Previous month')); });
+ // Select a day in the previous month, moving `selected` away from today — this is what makes the
+ // later "Today" assertion non-vacuous (it was not, before: `selected` never left today in this test).
+ await act(async () => { fireEvent.press(screen.getByLabelText(prevLabel)); });
+ expect(screen.queryByText(dateLabel(today, false))).toBeNull();
+ expect(screen.getByLabelText(prevLabel).props.accessibilityState.selected).toBe(true);
  await act(async () => { fireEvent.press(screen.getByText('Today')); });
  expect(screen.getByText(dateLabel(today, false))).toBeTruthy();
+ expect(screen.getByLabelText(todayLabel).props.accessibilityState.selected).toBe(true);
 });
