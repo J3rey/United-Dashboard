@@ -1,7 +1,7 @@
 import type { ColorValue } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { colors } from '../theme';
-export type IconName = 'wallet' | 'check' | 'film' | 'gear' | 'back' | 'chevron' | 'out' | 'swap' | 'archive' | 'info' | 'plus' | 'close' | 'inbox' | 'filter' | 'chart' | 'grip' | 'flag' | 'trash';
+export type IconName = 'wallet' | 'check' | 'film' | 'gear' | 'back' | 'chevron' | 'out' | 'swap' | 'archive' | 'info' | 'plus' | 'close' | 'inbox' | 'filter' | 'chart' | 'grip' | 'flag' | 'trash' | 'calendar' | 'external' | 'down';
 export function Icon({ name, color = colors.ink2, size = 22 }: { name: IconName; color?: ColorValue; size?: number }) {
   return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" accessibilityElementsHidden>
     {name === 'plus' && <Path d="M12 5v14M5 12h14"/>}
@@ -22,5 +22,8 @@ export function Icon({ name, color = colors.ink2, size = 22 }: { name: IconName;
     {name === 'swap' && <Path d="M3 7h17m-4-4 4 4-4 4M21 17H4m4-4-4 4 4 4"/>}
     {name === 'archive' && <><Rect x={3} y={3} width={18} height={4} rx={1}/><Path d="M5 7v14h14V7m-10 5h6"/></>}
     {name === 'info' && <><Circle cx={12} cy={12} r={9}/><Path d="M12 11v6m0-10v.1"/></>}
+    {name === 'calendar' && <><Rect x={3} y={5} width={18} height={16} rx={2}/><Path d="M3 10h18M8 3v4m8-4v4"/></>}
+    {name === 'external' && <Path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>}
+    {name === 'down' && <Path d="m6 9 6 6 6-6"/>}
   </Svg>;
 }
