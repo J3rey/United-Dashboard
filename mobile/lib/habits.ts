@@ -14,3 +14,16 @@ export function habitDay(habit: Habit,date: string,habits: Habit[],checks: Recor
  const goal=habit.daily?7:habit.goal, goalMet=!habit.daily && count>=goal;
  return {checked,inherited,count,goal,satisfied:checked||inherited||goalMet,state:checked||inherited?'checked' as const:'empty' as const};
 }
+export function satisfiedCounts(dates: string[],habits: Habit[],allHabits: Habit[],checks: Record<string,boolean>) {
+ const gym=allHabits.find(h=>/^gym\b/i.test(h.name)), weeks=new Map<string,{days:string[];counts:number[]}>();
+ const info=habits.map(h=>{const known=allHabits.find(x=>x.id===h.id); return {h,inherits:Boolean(known && gym && /physical exercise/i.test(known.name))};});
+ const on=(i: number,d: string)=>Boolean(checks[`${info[i].h.id}_${d}`] || (info[i].inherits && checks[`${gym!.id}_${d}`]));
+ return dates.map(date=>{
+  const m=new Date(date+'T12:00:00'); m.setDate(m.getDate()-(m.getDay()+6)%7); const monday=dateString(m);
+  let week=weeks.get(monday);
+  if (!week) { const days=weekDates(monday); week={days,counts:info.map((_,i)=>days.filter(d=>on(i,d)).length)}; weeks.set(monday,week); }
+  let n=0;
+  for (let i=0;i<info.length;i++) { const h=info[i].h; if (on(i,date) || (!h.daily && week.counts[i]>=h.goal)) n++; }
+  return n;
+ });
+}
