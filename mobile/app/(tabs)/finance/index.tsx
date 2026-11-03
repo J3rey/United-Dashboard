@@ -1,6 +1,6 @@
 import { Alert } from '../../../lib/alert';
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, RefreshControl, SectionList, type SectionListData, type SectionListRenderItem, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useData } from '../../../hooks/useAppData';
 import { useActions } from '../../../hooks/useActions';
@@ -11,7 +11,7 @@ import { Icon } from '../../../components/Icon';
 import { Button, EmptyState, Fab, IconButton, Stat, ui } from '../../../components/ui';
 import { AddExpenseSheet, ExpenseDetailSheet, FilterSheet } from '../../../components/sheets/ExpenseSheets';
 import { EventSheet } from '../../../components/sheets/EventSheet';
-import { transactionSections } from '../../../lib/finance';
+import { transactionSections, type LedgerSection } from '../../../lib/finance';
 import { dateLabel, dateString, money, monthLabel } from '../../../lib/format';
 import type { Category } from '../../../lib/constants';
 import type { Expense, EventHeader, EventEnd, Id } from '../../../lib/types';
@@ -21,6 +21,12 @@ export default function Finance() {
   const [month, setMonth] = useState(dateString().slice(0,7)), [categories, setCategories] = useState<Category[]>([]), [wholeYear, setWholeYear] = useState(false);
   const [add, setAdd] = useState(false), [filter, setFilter] = useState(false), [detailId, setDetailId] = useState<Id | null>(null), [marker, setMarker] = useState<EventHeader | EventEnd | 'new' | null>(null);
   useEffect(() => { if (prefs.ready && prefs.openOn === 'last') setMonth(prefs.lastMonth); }, [prefs.ready]);
+  const actionsRef = useRef(actions); actionsRef.current = actions;
+  const openExpense = useCallback((row: Expense) => setDetailId(row.id), []);
+  const deleteExpense = useCallback((id: Id) => actionsRef.current.deleteExpense(id), []);
+  const busy = actions.busy;
+  const renderItem = useCallback<SectionListRenderItem<Expense, LedgerSection>>(({ item,index,section }) => <LedgerRow expense={item} first={index === 0} last={index === section.data.length-1} busy={busy} onOpen={openExpense} onDelete={deleteExpense}/>, [busy,openExpense,deleteExpense]);
+  const renderSectionHeader = useCallback(({ section }: { section: SectionListData<Expense, LedgerSection> }) => section.marker ? <Pressable accessibilityRole="button" onPress={() => setMarker(section.marker ?? null)} style={styles.marker}><Text style={[type.label,{ color: section.marker.isHeader ? colors.purple : colors.ink3 }]}>{section.marker.label}</Text><View style={[styles.rule,{ backgroundColor: section.marker.isHeader ? colors.purple : colors.border2 }]}/></Pressable> : <View style={styles.day}><Text style={[type.label,numbers]}>{dateLabel(section.date,false)}</Text><Text style={[type.label,numbers]}>{money(section.total)}</Text></View>, []);
   const period = wholeYear ? month.slice(0,4) : month;
   const periodExpenses = useMemo(() => data.state.expenses.filter((row): row is Expense => !row.isHeader && !row.isEnd && row.date.startsWith(period)), [data.state.expenses,period]);
   const out = useMemo(() => periodExpenses.reduce((sum,row) => sum + row.cost,0), [periodExpenses]), income = useMemo(() => data.state.income.filter(row => row.date.startsWith(period)).reduce((sum,row) => sum + row.amount,0), [data.state.income,period]);
@@ -38,7 +44,7 @@ export default function Finance() {
       <Stat label={wholeYear?"Net this year":"Net this month"} value={money(income-out,true)} color={income === out ? colors.ink3 : income > out ? colors.green : colors.red} wide action={<View style={ui.line}><Button label="Income →" tone="quiet" onPress={() => router.push('/finance/income')}/><Button label="Debts →" tone="quiet" onPress={() => router.push('/finance/debts')}/></View>}/><View style={[ui.line,{ marginBottom:16 }]}><Stat label="Out" value={money(out)} color={out ? colors.red : colors.ink3}/><Stat label="In" value={money(income)} color={income ? colors.ink : colors.ink3}/></View>
       {!periodExpenses.length && <EmptyState title={`Nothing spent in ${wholeYear ? month.slice(0,4) : monthLabel(month).split(' ')[0]}`} copy="Add the first expense and it’ll show up here, grouped by day." action="Add an expense" onPress={() => setAdd(true)}/>}
       {periodExpenses.length > 0 && !filtered.some(row => !row.isHeader && !row.isEnd) && <EmptyState title={`No ${categories.join(' or ')} spending in ${monthLabel(month).split(' ')[0]}`} copy="Clear the filters to see the rest of this month." action="Clear filters" onPress={() => setCategories([])}/>}
-    </>} renderSectionHeader={({ section }) => section.marker ? <Pressable accessibilityRole="button" onPress={() => setMarker(section.marker ?? null)} style={styles.marker}><Text style={[type.label,{ color: section.marker.isHeader ? colors.purple : colors.ink3 }]}>{section.marker.label}</Text><View style={[styles.rule,{ backgroundColor: section.marker.isHeader ? colors.purple : colors.border2 }]}/></Pressable> : <View style={styles.day}><Text style={[type.label,numbers]}>{dateLabel(section.date,false)}</Text><Text style={[type.label,numbers]}>{money(section.total)}</Text></View>} renderItem={({ item,index,section }) => <LedgerRow expense={item} first={index === 0} last={index === section.data.length-1} onPress={() => setDetailId(item.id)} onDelete={() => actions.deleteExpense(item.id)}/>}/>
+    </>} renderSectionHeader={renderSectionHeader} renderItem={renderItem}/>
     <Fab label="Add expense" onPress={() => setAdd(true)}/>
     {marker && <EventSheet marker={marker === 'new' ? undefined : marker} onClose={() => setMarker(null)}/>}
     {add && <AddExpenseSheet onClose={() => setAdd(false)} onEvent={() => setMarker('new')}/>}
